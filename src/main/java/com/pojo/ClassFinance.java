@@ -6,117 +6,48 @@ import java.io.Serializable;
 public class ClassFinance implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public String SubbrandName;
-	public String BrandName;
-	public String Period3;
-	public double PplScVolume;
-	public double TlPerSc;
-	public double NetRealPerSc;
-	public double CpfPerSc;
-	public double NcsPerSc;
-	public double ContribPerSc;
-	public double AdjContribPerSc;
-	public double TL;
-	public double NetReal;
-	public double CPF;
-	public double NCS;
-	public double Contrib;
-	public double AdjContrib;
-	public String getSubbrandName() {
-		return SubbrandName;
+	public String BeneficiaryFinance;
+	public String CatlibCode;
+	public double rNR;
+	public double rNCS;
+	public double rCtb;
+	public double rAC;
+	public String getBeneficiaryFinance() {
+		return BeneficiaryFinance;
 	}
-	public void setSubbrandName(String subbrandName) {
-		SubbrandName = subbrandName;
+	public void setBeneficiaryFinance(String beneficiaryFinance) {
+		BeneficiaryFinance = beneficiaryFinance;
 	}
-	public String getBrandName() {
-		return BrandName;
+	public String getCatlibCode() {
+		return CatlibCode;
 	}
-	public void setBrandName(String brandName) {
-		BrandName = brandName;
+	public void setCatlibCode(String catlibCode) {
+		CatlibCode = catlibCode;
 	}
-	public String getPeriod3() {
-		return Period3;
+	public double getrNR() {
+		return rNR;
 	}
-	public void setPeriod3(String period) {
-		Period3 = period;
+	public void setrNR(double rNR) {
+		this.rNR = rNR;
 	}
-	public double getPplScVolume() {
-		return PplScVolume;
+	public double getrNCS() {
+		return rNCS;
 	}
-	public void setPplScVolume(double pplScVolume) {
-		PplScVolume = pplScVolume;
+	public void setrNCS(double rNCS) {
+		this.rNCS = rNCS;
 	}
-	public double getTlPerSc() {
-		return TlPerSc;
+	public double getrCtb() {
+		return rCtb;
 	}
-	public void setTlPerSc(double tlPerSc) {
-		TlPerSc = tlPerSc;
+	public void setrCtb(double rCtb) {
+		this.rCtb = rCtb;
 	}
-	public double getNetRealPerSc() {
-		return NetRealPerSc;
+	public double getrAC() {
+		return rAC;
 	}
-	public void setNetRealPerSc(double netRealPerSc) {
-		NetRealPerSc = netRealPerSc;
+	public void setrAC(double rAC) {
+		this.rAC = rAC;
 	}
-	public double getCpfPerSc() {
-		return CpfPerSc;
-	}
-	public void setCpfPerSc(double cpfPerSc) {
-		CpfPerSc = cpfPerSc;
-	}
-	public double getNcsPerSc() {
-		return NcsPerSc;
-	}
-	public void setNcsPerSc(double ncsPerSc) {
-		NcsPerSc = ncsPerSc;
-	}
-	public double getContribPerSc() {
-		return ContribPerSc;
-	}
-	public void setContribPerSc(double contribPerSc) {
-		ContribPerSc = contribPerSc;
-	}
-	public double getAdjContribPerSc() {
-		return AdjContribPerSc;
-	}
-	public void setAdjContribPerSc(double adjContribPerSc) {
-		AdjContribPerSc = adjContribPerSc;
-	}
-	public double getTL() {
-		return TL;
-	}
-	public void setTL(double tL) {
-		TL = tL;
-	}
-	public double getNetReal() {
-		return NetReal;
-	}
-	public void setNetReal(double netReal) {
-		NetReal = netReal;
-	}
-	public double getCPF() {
-		return CPF;
-	}
-	public void setCPF(double cPF) {
-		CPF = cPF;
-	}
-	public double getNCS() {
-		return NCS;
-	}
-	public void setNCS(double nCS) {
-		NCS = nCS;
-	}
-	public double getContrib() {
-		return Contrib;
-	}
-	public void setContrib(double contrib) {
-		Contrib = contrib;
-	}
-	public double getAdjContrib() {
-		return AdjContrib;
-	}
-	public void setAdjContrib(double adjContrib) {
-		AdjContrib = adjContrib;
-	}
+	
 	
 }

@@ -7,26 +7,28 @@ public class ClassWeeklyDueto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	public String Outlet;
-	public String CatLib;
+	public String Catlib;
 	public String ProdKey;
+	public double Geogkey;
 	public Date Week;
 	public String SalesComponent;
-	public double DuetoValue;
+	public double Dueto_value;
 	public String PrimaryCausalKey;
-	public double CausalValue;
-	public double ModelIteration;
-	public double Published;
+	public double Causal_value;
+	public String Country;
+	public String Iteration;
+	public String SourceBDA;
 	public String getOutlet() {
 		return Outlet;
 	}
 	public void setOutlet(String outlet) {
 		Outlet = outlet;
 	}
-	public String getCatLib() {
-		return CatLib;
+	public String getCatlib() {
+		return Catlib;
 	}
-	public void setCatLib(String catLib) {
-		CatLib = catLib;
+	public void setCatlib(String catlib) {
+		Catlib = catlib;
 	}
 	public String getProdKey() {
 		return ProdKey;
@@ -34,11 +36,17 @@ public class ClassWeeklyDueto implements Serializable {
 	public void setProdKey(String prodKey) {
 		ProdKey = prodKey;
 	}
+	public double getGeogkey() {
+		return Geogkey;
+	}
+	public void setGeogkey(double geogkey) {
+		Geogkey = geogkey;
+	}
 	public Date getWeek() {
 		return Week;
 	}
-	public void setWeek(Date date) {
-		Week = date;
+	public void setWeek(Date week) {
+		Week = week;
 	}
 	public String getSalesComponent() {
 		return SalesComponent;
@@ -46,11 +54,11 @@ public class ClassWeeklyDueto implements Serializable {
 	public void setSalesComponent(String salesComponent) {
 		SalesComponent = salesComponent;
 	}
-	public double getDuetoValue() {
-		return DuetoValue;
+	public double getDueto_value() {
+		return Dueto_value;
 	}
-	public void setDuetoValue(double duetoValue) {
-		DuetoValue = duetoValue;
+	public void setDueto_value(double dueto_value) {
+		Dueto_value = dueto_value;
 	}
 	public String getPrimaryCausalKey() {
 		return PrimaryCausalKey;
@@ -58,24 +66,32 @@ public class ClassWeeklyDueto implements Serializable {
 	public void setPrimaryCausalKey(String primaryCausalKey) {
 		PrimaryCausalKey = primaryCausalKey;
 	}
-	public double getCausalValue() {
-		return CausalValue;
+	public double getCausal_value() {
+		return Causal_value;
 	}
-	public void setCausalValue(double causalValue) {
-		CausalValue = causalValue;
+	public void setCausal_value(double causal_value) {
+		Causal_value = causal_value;
 	}
-	public double getModelIteration() {
-		return ModelIteration;
+	public String getCountry() {
+		return Country;
 	}
-	public void setModelIteration(double modelIteration) {
-		ModelIteration = modelIteration;
+	public void setCountry(String country) {
+		Country = country;
 	}
-	public double getPublished() {
-		return Published;
+	public String getIteration() {
+		return Iteration;
 	}
-	public void setPublished(double published) {
-		Published = published;
+	public void setIteration(String iteration) {
+		Iteration = iteration;
 	}
+	public String getSourceBDA() {
+		return SourceBDA;
+	}
+	public void setSourceBDA(String sourceBDA) {
+		SourceBDA = sourceBDA;
+	}
+	
+	
 	
 		
 }

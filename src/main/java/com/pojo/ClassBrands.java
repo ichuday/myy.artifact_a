@@ -6,55 +6,68 @@ import java.io.Serializable;
 public class ClassBrands implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	public String SubBrand;
-	public String BrandName;
-	public String CatLib;
+	public String Country;
+	public String Division;
+	public String BU;
+	public String Studio;
+	public String Neighborhoods;
+	public String Brand_Chapter;
+	public String Beneficiary;
+	public String Catlib;
 	public String ProdKey;
-	public String CatLibProdKey;
-
-	public String getSubBrand() {
-		return SubBrand;
+	public String getCountry() {
+		return Country;
 	}
-
-	public void setSubBrand(String subBrand) {
-		SubBrand = subBrand;
+	public void setCountry(String country) {
+		Country = country;
 	}
-	
-	public String getBrandName() {
-		return BrandName;
+	public String getDivision() {
+		return Division;
 	}
-
-	public void setBrandName(String brandName) {
-		BrandName = brandName;
+	public void setDivision(String division) {
+		Division = division;
 	}
-
-	public String getCatLib() {
-		return CatLib;
+	public String getBU() {
+		return BU;
 	}
-
-	public void setCatLib(String catLib) {
-		CatLib = catLib;
+	public void setBU(String bU) {
+		BU = bU;
 	}
-
+	public String getStudio() {
+		return Studio;
+	}
+	public void setStudio(String studio) {
+		Studio = studio;
+	}
+	public String getNeighborhoods() {
+		return Neighborhoods;
+	}
+	public void setNeighborhoods(String neighborhoods) {
+		Neighborhoods = neighborhoods;
+	}
+	public String getBrand_Chapter() {
+		return Brand_Chapter;
+	}
+	public void setBrand_Chapter(String brand_Chapter) {
+		Brand_Chapter = brand_Chapter;
+	}
+	public String getBeneficiary() {
+		return Beneficiary;
+	}
+	public void setBeneficiary(String beneficiary) {
+		Beneficiary = beneficiary;
+	}
+	public String getCatlib() {
+		return Catlib;
+	}
+	public void setCatlib(String catlib) {
+		Catlib = catlib;
+	}
 	public String getProdKey() {
 		return ProdKey;
 	}
-
 	public void setProdKey(String prodKey) {
 		ProdKey = prodKey;
-	}
-
-	public String getCatLibProdKey() {
-		return CatLibProdKey;
-	}
-
-	public void setCatLibProdKey(String catLibProdKey) {
-		CatLibProdKey = catLibProdKey;
-	}
-
-	public String toString() {
-		return "SubBrand:" + SubBrand + " BrandName:" + BrandName + " CatLib:" + CatLib + "ProdKey:" + ProdKey + "CatLibProdKey:"
-				+ CatLibProdKey;
 	}
 	
 	

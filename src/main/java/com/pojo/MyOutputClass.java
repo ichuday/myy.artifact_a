@@ -5,60 +5,79 @@ import java.io.Serializable;
 public class MyOutputClass implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public String Vehicle ;
-	public String Campaign;	
-	public String Copy;
-	public String BrandName;
-	public String Period1;
+	
+	public String Market;
+	public String SubChannel;
+	public String Event;
+	public String Beneficiary;
+	public String Channel;
+	public String Actual_Period;
 	public String PeriodStartDate;
 	public String PeriodEndDate;
-	public float GRPs;
-	public float Duration;
-	public float Continuity;
-	public float Alpha;
-	public float Beta;
-	public float Basis;
-	public float BasisDuration;
-	public float Volume;
-	public float Spend;
-	public float Efficiency;
-	public String Key;
-	public float Xnorm;
-	public float NormalizedEfficiency;
-	public float AdjContrib;
-	public float Payout;
-	public float NormalizedVolume;
-	public float NormalizedAdjContrib;
-	public float NormalizedPayout;
-	public String getVehicle() {
-		return Vehicle;
+	public double GRPs;
+	public double Duration;
+	public double Continuity;
+	public String BrandChapter;
+	public double ReportedSpend;
+	public double ModeledSpend;
+	public double ChannelVolume;
+	public double ProjectionFactor;
+	public double Volume;
+	public double Alpha;
+	public double Beta;
+	public double rNR;
+	public double rNCS;
+	public double rCtb;
+	public double rAC;
+	public String EventName;
+	public String Filter1;
+	public String Studio;
+	public String Neighborhoods;
+	public String BU;
+	public String Division;
+	public String MediaChannel;
+	public String ConsumerBehavior;
+	public double BasisPY;
+	public double BasisDurationPY;
+	public double X1;
+	public double X2;
+	public double AC;
+	public double Gamma;
+	public String getMarket() {
+		return Market;
 	}
-	public void setVehicle(String vehicle) {
-		Vehicle = vehicle;
+	public void setMarket(String market) {
+		Market = market;
 	}
-	public String getCampaign() {
-		return Campaign;
+	public String getSubChannel() {
+		return SubChannel;
 	}
-	public void setCampaign(String campaign) {
-		Campaign = campaign;
+	public void setSubChannel(String subChannel) {
+		SubChannel = subChannel;
 	}
-	public String getCopy() {
-		return Copy;
+	public String getEvent() {
+		return Event;
 	}
-	public void setCopy(String copy) {
-		Copy = copy;
+	public void setEvent(String event) {
+		Event = event;
 	}
-	public String getBrandName() {
-		return BrandName;
+	public String getBeneficiary() {
+		return Beneficiary;
 	}
-	public void setBrandName(String brandName) {
-		BrandName = brandName;
+	public void setBeneficiary(String beneficiary) {
+		Beneficiary = beneficiary;
 	}
-	public String getPeriod1() {
-		return Period1;
+	public String getChannel() {
+		return Channel;
 	}
-	public void setPeriod1(String period1) {
-		Period1 = period1;
+	public void setChannel(String channel) {
+		Channel = channel;
+	}
+	public String getActual_Period() {
+		return Actual_Period;
+	}
+	public void setActual_Period(String actual_Period) {
+		Actual_Period = actual_Period;
 	}
 	public String getPeriodStartDate() {
 		return PeriodStartDate;
@@ -72,113 +91,182 @@ public class MyOutputClass implements Serializable {
 	public void setPeriodEndDate(String periodEndDate) {
 		PeriodEndDate = periodEndDate;
 	}
-	public float getGRPs() {
+	public double getGRPs() {
 		return GRPs;
 	}
-	public void setGRPs(float gRPs) {
+	public void setGRPs(double gRPs) {
 		GRPs = gRPs;
 	}
-	public float getDuration() {
+	public double getDuration() {
 		return Duration;
 	}
-	public void setDuration(float duration) {
+	public void setDuration(double duration) {
 		Duration = duration;
 	}
-	public float getContinuity() {
+	public double getContinuity() {
 		return Continuity;
 	}
-	public void setContinuity(float continuity) {
+	public void setContinuity(double continuity) {
 		Continuity = continuity;
 	}
-	public float getAlpha() {
-		return Alpha;
+	public String getBrandChapter() {
+		return BrandChapter;
 	}
-	public void setAlpha(float alpha) {
-		Alpha = alpha;
+	public void setBrandChapter(String brandChapter) {
+		BrandChapter = brandChapter;
 	}
-	public float getBeta() {
-		return Beta;
+	public double getReportedSpend() {
+		return ReportedSpend;
 	}
-	public void setBeta(float beta) {
-		Beta = beta;
+	public void setReportedSpend(double reportedSpend) {
+		ReportedSpend = reportedSpend;
 	}
-	public float getBasis() {
-		return Basis;
+	public double getModeledSpend() {
+		return ModeledSpend;
 	}
-	public void setBasis(float basis) {
-		Basis = basis;
+	public void setModeledSpend(double modeledSpend) {
+		ModeledSpend = modeledSpend;
 	}
-	public float getBasisDuration() {
-		return BasisDuration;
+	public double getChannelVolume() {
+		return ChannelVolume;
 	}
-	public void setBasisDuration(float basisDuration) {
-		BasisDuration = basisDuration;
+	public void setChannelVolume(double channelVolume) {
+		ChannelVolume = channelVolume;
 	}
-	public float getVolume() {
+	public double getProjectionFactor() {
+		return ProjectionFactor;
+	}
+	public void setProjectionFactor(double projectionFactor) {
+		ProjectionFactor = projectionFactor;
+	}
+	public double getVolume() {
 		return Volume;
 	}
-	public void setVolume(float volume) {
+	public void setVolume(double volume) {
 		Volume = volume;
 	}
-	public float getSpend() {
-		return Spend;
+	public double getAlpha() {
+		return Alpha;
 	}
-	public void setSpend(float spend) {
-		Spend = spend;
+	public void setAlpha(double alpha) {
+		Alpha = alpha;
 	}
-	public float getEfficiency() {
-		return Efficiency;
+	public double getBeta() {
+		return Beta;
 	}
-	public void setEfficiency(float efficiency) {
-		Efficiency = efficiency;
+	public void setBeta(double beta) {
+		Beta = beta;
 	}
-	public String getKey() {
-		return Key;
+	public double getrNR() {
+		return rNR;
 	}
-	public void setKey(String key) {
-		Key = key;
+	public void setrNR(double rNR) {
+		this.rNR = rNR;
 	}
-	public float getXnorm() {
-		return Xnorm;
+	public double getrNCS() {
+		return rNCS;
 	}
-	public void setXnorm(float xnorm) {
-		Xnorm = xnorm;
+	public void setrNCS(double rNCS) {
+		this.rNCS = rNCS;
 	}
-	public float getNormalizedEfficiency() {
-		return NormalizedEfficiency;
+	public double getrCtb() {
+		return rCtb;
 	}
-	public void setNormalizedEfficiency(float normalizedEfficiency) {
-		NormalizedEfficiency = normalizedEfficiency;
+	public void setrCtb(double rCtb) {
+		this.rCtb = rCtb;
 	}
-	public float getAdjContrib() {
-		return AdjContrib;
+	public double getrAC() {
+		return rAC;
 	}
-	public void setAdjContrib(float adjContrib) {
-		AdjContrib = adjContrib;
+	public void setrAC(double rAC) {
+		this.rAC = rAC;
 	}
-	public float getPayout() {
-		return Payout;
+	public String getEventName() {
+		return EventName;
 	}
-	public void setPayout(float payout) {
-		Payout = payout;
+	public void setEventName(String eventName) {
+		EventName = eventName;
 	}
-	public float getNormalizedVolume() {
-		return NormalizedVolume;
+	public String getFilter1() {
+		return Filter1;
 	}
-	public void setNormalizedVolume(float normalizedVolume) {
-		NormalizedVolume = normalizedVolume;
+	public void setFilter1(String filter1) {
+		Filter1 = filter1;
 	}
-	public float getNormalizedAdjContrib() {
-		return NormalizedAdjContrib;
+	public String getStudio() {
+		return Studio;
 	}
-	public void setNormalizedAdjContrib(float normalizedAdjContrib) {
-		NormalizedAdjContrib = normalizedAdjContrib;
+	public void setStudio(String studio) {
+		Studio = studio;
 	}
-	public float getNormalizedPayout() {
-		return NormalizedPayout;
+	public String getNeighborhoods() {
+		return Neighborhoods;
 	}
-	public void setNormalizedPayout(float normalizedPayout) {
-		NormalizedPayout = normalizedPayout;
+	public void setNeighborhoods(String neighborhoods) {
+		Neighborhoods = neighborhoods;
 	}
+	public String getBU() {
+		return BU;
+	}
+	public void setBU(String bU) {
+		BU = bU;
+	}
+	public String getDivision() {
+		return Division;
+	}
+	public void setDivision(String division) {
+		Division = division;
+	}
+	public String getMediaChannel() {
+		return MediaChannel;
+	}
+	public void setMediaChannel(String mediaChannel) {
+		MediaChannel = mediaChannel;
+	}
+	public String getConsumerBehavior() {
+		return ConsumerBehavior;
+	}
+	public void setConsumerBehavior(String consumerBehavior) {
+		ConsumerBehavior = consumerBehavior;
+	}
+	public double getBasisPY() {
+		return BasisPY;
+	}
+	public void setBasisPY(double basisPY) {
+		BasisPY = basisPY;
+	}
+	public double getBasisDurationPY() {
+		return BasisDurationPY;
+	}
+	public void setBasisDurationPY(double basisDurationPY) {
+		BasisDurationPY = basisDurationPY;
+	}
+	public double getX1() {
+		return X1;
+	}
+	public void setX1(double x1) {
+		X1 = x1;
+	}
+	public double getX2() {
+		return X2;
+	}
+	public void setX2(double x2) {
+		X2 = x2;
+	}
+	public double getAC() {
+		return AC;
+	}
+	public void setAC(double aC) {
+		AC = aC;
+	}
+	public double getGamma() {
+		return Gamma;
+	}
+	public void setGamma(double gamma) {
+		Gamma = gamma;
+	}
+	
+
+	
 	
 		}

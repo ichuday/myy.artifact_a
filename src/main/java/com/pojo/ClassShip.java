@@ -6,12 +6,12 @@ public class ClassShip implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	public String Brand;
-	public String SubBrand;
-	public String CatLib;
+	public String Beneficiary;
+	public String Catlib;
 	public String Channel;
-	public String Period2;
-	public String ChannelVolume;
-	public String AllOutletVolume;
+	public String Period;
+	public double ChannelVolume;
+	public double AllOutletVolume;
 	public double ProjectionFactor;
 	public String getBrand() {
 		return Brand;
@@ -19,17 +19,17 @@ public class ClassShip implements Serializable {
 	public void setBrand(String brand) {
 		Brand = brand;
 	}
-	public String getSubBrand() {
-		return SubBrand;
+	public String getBeneficiary() {
+		return Beneficiary;
 	}
-	public void setSubBrand(String subBrand) {
-		SubBrand = subBrand;
+	public void setBeneficiary(String beneficiary) {
+		Beneficiary = beneficiary;
 	}
-	public String getCatLib() {
-		return CatLib;
+	public String getCatlib() {
+		return Catlib;
 	}
-	public void setCatLib(String catLib) {
-		CatLib = catLib;
+	public void setCatlib(String catlib) {
+		Catlib = catlib;
 	}
 	public String getChannel() {
 		return Channel;
@@ -37,22 +37,22 @@ public class ClassShip implements Serializable {
 	public void setChannel(String channel) {
 		Channel = channel;
 	}
-	public String getPeriod2() {
-		return Period2;
+	public String getPeriod() {
+		return Period;
 	}
-	public void setPeriod2(String period2) {
-		Period2 = period2;
+	public void setPeriod(String period) {
+		Period = period;
 	}
-	public String getChannelVolume() {
+	public double getChannelVolume() {
 		return ChannelVolume;
 	}
-	public void setChannelVolume(String channelVolume) {
+	public void setChannelVolume(double channelVolume) {
 		ChannelVolume = channelVolume;
 	}
-	public String getAllOutletVolume() {
+	public double getAllOutletVolume() {
 		return AllOutletVolume;
 	}
-	public void setAllOutletVolume(String allOutletVolume) {
+	public void setAllOutletVolume(double allOutletVolume) {
 		AllOutletVolume = allOutletVolume;
 	}
 	public double getProjectionFactor() {
@@ -61,6 +61,6 @@ public class ClassShip implements Serializable {
 	public void setProjectionFactor(double projectionFactor) {
 		ProjectionFactor = projectionFactor;
 	}
-	
+
 	
 }

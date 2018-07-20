@@ -5,32 +5,18 @@ import java.io.Serializable;
 public class ClassSpend implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	public String Vehicle;
-	public String Copy;
-	public String PrincipalBrand;
 	public String FiscalYear;
 	public String FiscalQuarter;
-	public String CalendarYear;
-	public String CalendarQuarter;
-	public double Spend;
-	public String getVehicle() {
-		return Vehicle;
-	}
-	public void setVehicle(String vehicle) {
-		Vehicle = vehicle;
-	}
-	public String getCopy() {
-		return Copy;
-	}
-	public void setCopy(String copy) {
-		Copy = copy;
-	}
-	public String getPrincipalBrand() {
-		return PrincipalBrand;
-	}
-	public void setPrincipalBrand(String principalBrand) {
-		PrincipalBrand = principalBrand;
-	}
+	public String BrandChapter;
+	public String Market;
+	public String ConsumerBehavior;
+	public String Channel;
+	public String SubChannel;
+	public String Campaign;
+	public String EventName;
+	public String EventKey;
+	public double ReportedSpend;
+	public double ModeledSpend;
 	public String getFiscalYear() {
 		return FiscalYear;
 	}
@@ -43,23 +29,65 @@ public class ClassSpend implements Serializable {
 	public void setFiscalQuarter(String fiscalQuarter) {
 		FiscalQuarter = fiscalQuarter;
 	}
-	public String getCalendarYear() {
-		return CalendarYear;
+	public String getBrandChapter() {
+		return BrandChapter;
 	}
-	public void setCalendarYear(String calendarYear) {
-		CalendarYear = calendarYear;
+	public void setBrandChapter(String brandChapter) {
+		BrandChapter = brandChapter;
 	}
-	public String getCalendarQuarter() {
-		return CalendarQuarter;
+	public String getMarket() {
+		return Market;
 	}
-	public void setCalendarQuarter(String calendarQuarter) {
-		CalendarQuarter = calendarQuarter;
+	public void setMarket(String market) {
+		Market = market;
 	}
-	public double getSpend() {
-		return Spend;
+	public String getConsumerBehavior() {
+		return ConsumerBehavior;
 	}
-	public void setSpend(double spend) {
-		Spend = spend;
+	public void setConsumerBehavior(String consumerBehavior) {
+		ConsumerBehavior = consumerBehavior;
 	}
-
+	public String getChannel() {
+		return Channel;
+	}
+	public void setChannel(String channel) {
+		Channel = channel;
+	}
+	public String getSubChannel() {
+		return SubChannel;
+	}
+	public void setSubChannel(String subChannel) {
+		SubChannel = subChannel;
+	}
+	public String getCampaign() {
+		return Campaign;
+	}
+	public void setCampaign(String campaign) {
+		Campaign = campaign;
+	}
+	public String getEventName() {
+		return EventName;
+	}
+	public void setEventName(String eventName) {
+		EventName = eventName;
+	}
+	public String getEventKey() {
+		return EventKey;
+	}
+	public void setEventKey(String eventKey) {
+		EventKey = eventKey;
+	}
+	public double getReportedSpend() {
+		return ReportedSpend;
+	}
+	public void setReportedSpend(double reportedSpend) {
+		ReportedSpend = reportedSpend;
+	}
+	public double getModeledSpend() {
+		return ModeledSpend;
+	}
+	public void setModeledSpend(double modeledSpend) {
+		ModeledSpend = modeledSpend;
+	}
+	
 }

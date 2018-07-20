@@ -8,9 +8,10 @@ public class ClassCurves implements Serializable {
 	public String Brand;
 	public String SBU;
 	public String Division;
-	public String Vehicle;
 	public double Alpha;
 	public double Beta;
+	public String Market;
+	public String SubChannel;
 	public String getBrand() {
 		return Brand;
 	}
@@ -29,12 +30,6 @@ public class ClassCurves implements Serializable {
 	public void setDivision(String division) {
 		Division = division;
 	}
-	public String getVehicle() {
-		return Vehicle;
-	}
-	public void setVehicle(String vehicle) {
-		Vehicle = vehicle;
-	}
 	public double getAlpha() {
 		return Alpha;
 	}
@@ -47,6 +42,17 @@ public class ClassCurves implements Serializable {
 	public void setBeta(double beta) {
 		Beta = beta;
 	}
+	public String getMarket() {
+		return Market;
+	}
+	public void setMarket(String market) {
+		Market = market;
+	}
+	public String getSubChannel() {
+		return SubChannel;
+	}
+	public void setSubChannel(String subChannel) {
+		SubChannel = subChannel;
+	}
 	
-
 }

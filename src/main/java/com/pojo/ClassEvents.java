@@ -1,32 +1,34 @@
 package com.pojo;
-
 import java.io.Serializable;
-
 public class ClassEvents implements Serializable{
-
 	private static final long serialVersionUID = 1L;
-	public String EventList;
-	public String EventDescription;
-	public String Vehicle;
-	public String getEventList() {
-		return EventList;
+	public String EventType;
+	public String EventKey;
+	public String EventName;
+	public String EventComponents;
+	public String getEventType() {
+		return EventType;
 	}
-	public void setEventList(String eventList) {
-		EventList = eventList;
+	public void setEventType(String eventType) {
+		EventType = eventType;
 	}
-	public String getEventDescription() {
-		return EventDescription;
+	public String getEventKey() {
+		return EventKey;
 	}
-	public void setEventDescription(String eventDescription) {
-		EventDescription = eventDescription;
+	public void setEventKey(String eventKey) {
+		EventKey = eventKey;
 	}
-	public String getVehicle() {
-		return Vehicle;
+	public String getEventName() {
+		return EventName;
 	}
-	public void setVehicle(String vehicle) {
-		Vehicle = vehicle;
+	public void setEventName(String eventName) {
+		EventName = eventName;
+	}
+	public String getEventComponents() {
+		return EventComponents;
+	}
+	public void setEventComponents(String eventComponents) {
+		EventComponents = eventComponents;
 	}
 	
-	
-
 }
