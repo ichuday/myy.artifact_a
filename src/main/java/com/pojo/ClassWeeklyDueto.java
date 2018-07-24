@@ -9,7 +9,7 @@ public class ClassWeeklyDueto implements Serializable {
 	public String Outlet;
 	public String Catlib;
 	public String ProdKey;
-	public double Geogkey;
+	public Double Geogkey;
 	public Date Week;
 	public String SalesComponent;
 	public double Dueto_value;
@@ -36,11 +36,11 @@ public class ClassWeeklyDueto implements Serializable {
 	public void setProdKey(String prodKey) {
 		ProdKey = prodKey;
 	}
-	public double getGeogkey() {
+	public Double getGeogkey() {
 		return Geogkey;
 	}
-	public void setGeogkey(double geogkey) {
-		Geogkey = geogkey;
+	public void setGeogkey(Double double1) {
+		Geogkey = double1;
 	}
 	public Date getWeek() {
 		return Week;
@@ -90,6 +90,7 @@ public class ClassWeeklyDueto implements Serializable {
 	public void setSourceBDA(String sourceBDA) {
 		SourceBDA = sourceBDA;
 	}
+
 	
 	
 	

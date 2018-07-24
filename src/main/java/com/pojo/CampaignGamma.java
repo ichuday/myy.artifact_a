@@ -1,5 +1,6 @@
 package com.pojo;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import org.apache.commons.math3.distribution.GammaDistribution;
 
@@ -326,8 +327,8 @@ public class CampaignGamma implements Serializable{
 	public double getX2() {
 		return X2;
 	}
-	public void setX2(double x2) {
-		X2 = x2;
+	public void setX2(double d) {
+		X2 = d;
 	}
 	public String getPeriodType() {
 		return PeriodType;
