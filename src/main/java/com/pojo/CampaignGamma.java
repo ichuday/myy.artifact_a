@@ -60,6 +60,21 @@ public class CampaignGamma implements Serializable{
 	public double Gamma_X1_2;
 	public double Gamma_X1_3;
 	public double Gamma_X2;
+	public double ChannelVolume;
+	
+	public double getChannelVolume() {
+		return ChannelVolume;
+	}
+	public void setChannelVolume(double channelVolume) {
+		ChannelVolume = channelVolume;
+	}
+	public double getAllOutletVolume() {
+		return AllOutletVolume;
+	}
+	public void setAllOutletVolume(double allOutletVolume) {
+		AllOutletVolume = allOutletVolume;
+	}
+	public double AllOutletVolume;
 	public String getSourceBDA() {
 		return SourceBDA;
 	}

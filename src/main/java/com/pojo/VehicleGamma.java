@@ -54,10 +54,25 @@ public class VehicleGamma implements Serializable{
 	public String PeriodType;
 	public String Report_Period;
 	public String CatLib;
+	public double ChannelVolume;
+	public double AllOutletVolume;
 	public double Gamma_X1;
 	public double Gamma_X1_2;
 	public double Gamma_X1_3;
 	public double Gamma_X2;
+	
+	public double getChannelVolume() {
+		return ChannelVolume;
+	}
+	public void setChannelVolume(double channelVolume) {
+		ChannelVolume = channelVolume;
+	}
+	public double getAllOutletVolume() {
+		return AllOutletVolume;
+	}
+	public void setAllOutletVolume(double allOutletVolume) {
+		AllOutletVolume = allOutletVolume;
+	}
 	public String getSourceBDA() {
 		return SourceBDA;
 	}
