@@ -1912,35 +1912,14 @@ public class StarterPipeline {
 						+ "        group by a.SourceBDA,a.Country,a.Market, a.SubChannel, a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend , a.ModeledSpend, a.DuetoVolume,  a.ProjectionFactor , a.ChannelVolume, a.AllOutletVolume, a.Volume,MediaChannel ,ConsumerBehavior"));
 
-		PCollection<String> gs_output_final = rec_28.apply(ParDo.of(new DoFn<BeamRecord, String>() {
-		private static final long serialVersionUID = 1L;
-
-		@ProcessElement
-		public void processElement(ProcessContext c) {
-			c.output(c.element().toString());
-			System.out.println(c.element().toString());
-		}
-	}));
-	gs_output_final.apply(TextIO.write().to("gs://cloroxtegadeff/output/rec_28"));
 		
 //		// Query_29 Vehicle_Financials
-/*		PCollectionTuple query19 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_28"), rec_28)
+		PCollectionTuple query19 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_28"), rec_28)
 				.and(new TupleTag<BeamRecord>("financials"), financials);
 		PCollection<BeamRecord> rec_29 = query19.apply(BeamSql.queryMulti(
 				" Select a.SourceBDA,a.Country,a.Market, a.SubChannel, a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend, a.ModeledSpend, a.DuetoVolume, a.ProjectionFactor,a.ChannelVolume, a.AllOutletVolume, a.Volume, a.Alpha ,a.Beta,a.MediaChannel ,a.ConsumerBehavior ,b.rNR, b.rNCS, b.rCtb, b.rAC from rec_28 as a \r\n"
 						+ "left join financials as b on a.Beneficiary = b.BeneficiaryFinance"));
-		
-		PCollection<String> gs_output_finals = rec_29.apply(ParDo.of(new DoFn<BeamRecord, String>() {
-		private static final long serialVersionUID = 1L;
-
-		@ProcessElement
-		public void processElement(ProcessContext c) {
-			c.output(c.element().toString());
-			System.out.println(c.element().toString());
-		}
-	}));
-	gs_output_finals.apply(TextIO.write().to("gs://cloroxtegadeff/output/rec_29"));
 		
 		PCollection<BeamRecord> TEST_BRANDSH = brandsH.apply(BeamSql.query(
 				" Select distinct Studio, Neighborhoods, BU, Division, Brand_Chapter from PCOLLECTION"));
@@ -2695,7 +2674,7 @@ public class StarterPipeline {
 						.set("Gamma_X1_2", elem.Gamma_X1_2).set("Gamma_X1_3", elem.Gamma_X1_3).set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   */
+						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   
 
 		p.run().waitUntilFinish();
 	}
