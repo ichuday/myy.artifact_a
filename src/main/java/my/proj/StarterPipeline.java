@@ -1463,12 +1463,13 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_8 = brandsH
 				.apply(BeamSql.query("SELECT DISTINCT Catlib, ProdKey from PCOLLECTION where ProdKey <> 'null'"));
 
+		
 		// Query_9 Product_selected
 		PCollectionTuple query4 = PCollectionTuple.of(new TupleTag<BeamRecord>("weekD"), weekD)
 				.and(new TupleTag<BeamRecord>("rec_8"), rec_8);
 		PCollection<BeamRecord> rec_9 = query4.apply(BeamSql.queryMulti(
 				"SELECT a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Geogkey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey, (case when a.Causal_value is null then cast('0.00' as double) else a.Causal_value end) as  Causal_value  ,a.Country, a.Iteration ,b.ProdKey from weekD as a \r\n"
-						+ "INNER JOIN rec_8 as b on a.ProdKey = b.ProdKey"));
+						+ "INNER JOIN rec_8 as b on a.Catlib = b.Catlib and a.ProdKey = b.ProdKey"));
 
 		
 		// Query_10 BrandMap
@@ -1479,7 +1480,7 @@ public class StarterPipeline {
 						+ "b.Beneficiary from rec_9 as a LEFT JOIN brandsH as b \r\n"
 						+ "on a.Catlib = b.Catlib and a.ProdKey = b.ProdKey"));
 
-
+		
 //		// Query_11 52_week
 		PCollectionTuple query6 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_10"), rec_10)
 				.and(new TupleTag<BeamRecord>("periodM"), periodM);
@@ -1489,9 +1490,8 @@ public class StarterPipeline {
 						+ "periodM as b on a.SourceBDA = b.Source_BDA WHERE cast(cast(EXTRACT(YEAR from a.Week) as VARCHAR) || (case when EXTRACT(MONTH from a.Week) < 10 then '0' || cast(EXTRACT(MONTH from a.Week) as VARCHAR) else cast(EXTRACT(MONTH from a.Week) as VARCHAR) END) || (case when EXTRACT(DAY from a.Week) < 10 then '0' || cast(EXTRACT(DAY from a.Week) as VARCHAR) else  cast(EXTRACT(DAY from a.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from b.Start_date) as VARCHAR) || (case when EXTRACT(MONTH from b.Start_date) < 10 then '0' || cast(EXTRACT(MONTH from b.Start_date) as VARCHAR) else cast(EXTRACT(MONTH from b.Start_date) as VARCHAR) END) || (case when EXTRACT(DAY from b.Start_date) < 10 then '0' || cast(EXTRACT(DAY from b.Start_date) as VARCHAR) else  cast(EXTRACT(DAY from b.Start_date) as VARCHAR) END) as BIGINT) \r\n"
 						+ "and cast(cast(EXTRACT(YEAR from a.Week) as VARCHAR) || (case when EXTRACT(MONTH from a.Week) < 10 then '0' || cast(EXTRACT(MONTH from a.Week) as VARCHAR) else cast(EXTRACT(MONTH from a.Week) as VARCHAR) END) || (case when EXTRACT(DAY from a.Week) < 10 then '0' || cast(EXTRACT(DAY from a.Week) as VARCHAR) else  cast(EXTRACT(DAY from a.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from b.End_date) as VARCHAR) || (case when EXTRACT(MONTH from b.End_date) < 10 then '0' || cast(EXTRACT(MONTH from b.End_date) as VARCHAR) else cast(EXTRACT(MONTH from b.End_date) as VARCHAR) END) || (case when EXTRACT(DAY from b.End_date) < 10 then '0' || cast(EXTRACT(DAY from b.End_date) as VARCHAR) else  cast(EXTRACT(DAY from b.End_date) as VARCHAR) END) as BIGINT)"));
 
-		
 		// Query_12
-		PCollection<BeamRecord> rec_12 = rec_6.apply(BeamSql.query(
+	PCollection<BeamRecord> rec_12 = rec_6.apply(BeamSql.query(
 				"SELECT DISTINCT BrandChapter, SubChannel, EventName,Market,EventKey, Channel, ConsumerBehavior from PCOLLECTION"));
 
 				
@@ -2789,7 +2789,7 @@ public class StarterPipeline {
 						.set("Gamma_X1_2", elem.Gamma_X1_2).set("Gamma_X1_3", elem.Gamma_X1_3).set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));    
+						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   
 
 		p.run().waitUntilFinish();
 	}
