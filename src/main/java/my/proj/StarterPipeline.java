@@ -113,6 +113,7 @@ import com.pojo.ClassBrands;
 import com.pojo.ClassWeeklyDueto;
 import com.pojo.ClassWeeks;
 import com.pojo.Composite_events;
+import com.pojo.Durationflag;
 import com.pojo.Hispanic6temp;
 import com.pojo.ClassPeriod;
 import com.pojo.ClassEvents;
@@ -141,7 +142,7 @@ public class StarterPipeline {
 	public static class AddS implements BeamSqlUdf {
 		private static final long serialVersionUID = 1L;
 
-		public static String eval(String input) throws ParseException {
+		public static String eval(String input,Integer i) throws ParseException {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 			System.out.println("dateformat : " + dateFormat);
 
@@ -153,7 +154,7 @@ public class StarterPipeline {
 
 			c.setTime(date1);
 
-			c.add(Calendar.DATE, 7);
+			c.add(Calendar.DATE, i);
 
 			String f = c.getTime().toString();
 
@@ -398,6 +399,20 @@ public class StarterPipeline {
 			}
 			return g;
 		}
+	}
+	
+	public static class duration_flag_UDF implements BeamSqlUdf {
+		private static final long serialVersionUID = 1L;
+		public static Double eval(Double a) throws ParseException {
+			Double g = (double) 0;
+			if(a == null) {
+				g = 0.0;
+			}else {
+				g = a ;
+			}
+			return g;
+		}
+		
 	}
 	
 	// function to convert Event xls to csv
@@ -876,7 +891,6 @@ public class StarterPipeline {
 			public void processElement(ProcessContext c) {
 				String[] strArr = c.element().split(",");
 				String header = Arrays.toString(strArr);
-
 				if (header.contains("Outlet"))
 					System.out.println("Header");
 				else {
@@ -1022,10 +1036,10 @@ public class StarterPipeline {
 	
 	
 	PCollection<String> weekly_read = p.apply(TextIO.read()
-				.from("gs://cloroxtegadeff/final_input/Grocery_FY18Q2_BF_BDAMIX1_run1_BF_GR_weekly_dueto.csv"));
+				.from("gs://ad_efficiency_input/Weekly_Dueto/Grocery*.csv"));
 		PCollection<FileIO.ReadableFile> weeklyB = p
 				.apply(FileIO.match().filepattern(
-						"gs://cloroxtegadeff/final_input/Grocery_FY18Q2_BF_BDAMIX1_run1_BF_GR_weekly_dueto.csv")) // reading
+						"gs://ad_efficiency_input/Weekly_Dueto/Grocery*.csv")) // reading
 																													// all
 																													// the
 																													// files
@@ -1065,8 +1079,8 @@ public class StarterPipeline {
 					for (int i = 0; i < al.size(); i++) {
 						String namesList = al.get(i).toString();
 						String[] x = namesList.split("_");
-						String x1 = x[5];
-						String x2 = x[2];
+						String x1 = x[7];
+						String x2 = x[4];
 						ClassWeeklyDueto wd = new ClassWeeklyDueto();
 						wd.setOutlet(strArr[0]);
 						wd.setCatlib(strArr[1]);
@@ -1089,7 +1103,7 @@ public class StarterPipeline {
 					}
 				}
 			}
-		}).withSideInputs(weeklyC));
+		}));
 
 		List<String> fieldNames = Arrays.asList("Outlet", "Catlib", "ProdKey", "Geogkey", "Week", "SalesComponent",
 				"Dueto_value", "PrimaryCausalKey", "Causal_value", "Iteration", "SourceBDA","Country");
@@ -1113,8 +1127,8 @@ public class StarterPipeline {
 		PCollection<BeamRecord> weekD = appsX.apply(Window.<BeamRecord>into(new GlobalWindows())
 				.triggering(Repeatedly.forever(AfterWatermark.pastEndOfWindow()))
 				.withAllowedLateness(org.joda.time.Duration.standardMinutes(1)).discardingFiredPanes());
-		
 
+		
 //		// implement EVNTEXEC.csv
 		PCollection<String> eve_read = p.apply(TextIO.read().from("gs://cloroxtegadeff/final_input/Event_Exec.csv"));
 		PCollection<ClassEventExec> pojos11 = eve_read.apply(ParDo.of(new DoFn<String, ClassEventExec>() { // converting
@@ -1366,7 +1380,7 @@ public class StarterPipeline {
 		PCollectionTuple query1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
 				.and(new TupleTag<BeamRecord>("Event"), Event);
 		PCollection<BeamRecord> rec_4 = query1.apply(BeamSql
-				.queryMulti("SELECT a.FiscalYear,a.FiscalQuarter, a.BrandChapter, a.Market, a.ConsumerBehavior, \r\n"
+				.queryMulti("SELECT a.FiscalYear,a.FiscalQuarter, a.BrandChapter,'GM' as Market, a.ConsumerBehavior, \r\n"
 						+ "a.Channel, 'Composite' as SubChannel, a.Campaign,a.ReportedSpend, a.ModeledSpend,  a.Summed, a.maxed, a.least, a.Dummy, b.EventName, b.EventKey,b.EventComponents from \r\n"
 						+ "rec_3 as a left join Event as b on a.EventKey = b.EventComponents where a.SubChannel <> 'Do not use' or a.EventKey <> 'Do no use' "));
 		
@@ -1388,10 +1402,10 @@ public class StarterPipeline {
 						+ " , ModeledSpend, Summed, Dummy, maxed, least from rec_3 UNION ALL SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, \r\n"
 						+ " ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend, ModeledSpend, Summed, Dummy, maxed, least from rec_5"));
 
-//	PCollection<BeamRecord> rec_6_test = rec_6.apply(BeamSql.query(
-//				"SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend, \r\n"
-//						+ "ModeledSpend from PCOLLECTION"));
-//
+	PCollection<BeamRecord> rec_6_test = rec_6.apply(BeamSql.query(
+				"SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend, \r\n"
+						+ "ModeledSpend from PCOLLECTION"));
+
 //		PCollection<ClassSpend> ClassSpend_test = rec_6_test.apply(ParDo.of(new DoFn<BeamRecord, ClassSpend>() {
 //		private static final long serialVersionUID = 1L;
 //
@@ -1456,17 +1470,15 @@ public class StarterPipeline {
 				"SELECT a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Geogkey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey, (case when a.Causal_value is null then cast('0.00' as double) else a.Causal_value end) as  Causal_value  ,a.Country, a.Iteration ,b.ProdKey from weekD as a \r\n"
 						+ "INNER JOIN rec_8 as b on a.ProdKey = b.ProdKey"));
 
-
 		
 		// Query_10 BrandMap
-		PCollectionTuple query5 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_9"), rec_9)
+	PCollectionTuple query5 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_9"), rec_9)
 				.and(new TupleTag<BeamRecord>("brandsH"), brandsH);
 		PCollection<BeamRecord> rec_10 = query5.apply(BeamSql.queryMulti(
 				"Select a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey,a.Iteration, a.Causal_value ,a.Country, \r\n"
 						+ "b.Beneficiary from rec_9 as a LEFT JOIN brandsH as b \r\n"
 						+ "on a.Catlib = b.Catlib and a.ProdKey = b.ProdKey"));
 
-		
 
 //		// Query_11 52_week
 		PCollectionTuple query6 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_10"), rec_10)
@@ -1490,7 +1502,7 @@ public class StarterPipeline {
 				"Select a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey \r\n"
 						+ ",a.Iteration, a.Causal_value ,a.Country, a.Beneficiary, a.Actual_period,b.BrandChapter, b.SubChannel, b.EventName, b.Market,b.Channel as MediaChannel ,b.ConsumerBehavior from rec_11 as a INNER JOIN rec_12 as b \r\n"
 						+ "on a.SalesComponent = b.EventKey "));
-		
+		//print--------
 
 		
 		// HISPANIC queries starts
@@ -1535,7 +1547,6 @@ public class StarterPipeline {
 //				"Select Outlet, Catlib, SourceBDA, ProdKey, Week, SalesComponent, Dueto_value, PrimaryCausalKey, \r\n"
 //						+ "Iteration ,Country, Beneficiary, Actual_period, BrandChapter, SubChannel, EventName, Market, MediaChannel ,ConsumerBehavior, EvntKey, TVHousehold,Causal_Value_New from PCOLLECTION"));
 //
-//		
 //		PCollection<Hispanic6temp> Hispanic6temp = hispanic_6_temp
 //				.apply(ParDo.of(new DoFn<BeamRecord, Hispanic6temp>() {
 //					private static final long serialVersionUID = 1L;
@@ -1616,7 +1627,7 @@ public class StarterPipeline {
 		
 		
 //		// Duration Query calculation part
-	PCollection<BeamRecord> X = Wknd.apply(BeamSql.query(
+  PCollection<BeamRecord> X = Wknd.apply(BeamSql.query(
 				"SELECT EveDate,1 as Dummy, cast(cast(EXTRACT(YEAR from EveDate) as VARCHAR) || (case when EXTRACT(MONTH from EveDate) < 10 then '0' || cast(EXTRACT(MONTH from EveDate) as VARCHAR) else cast(EXTRACT(MONTH from EveDate) as VARCHAR) END) || (case when EXTRACT(DAY from EveDate) < 10 then '0' || cast(EXTRACT(DAY from EveDate) as VARCHAR) else cast(EXTRACT(DAY from EveDate) as VARCHAR) END) as BIGINT) as Weekend from PCOLLECTION"));
 
 
@@ -1625,7 +1636,6 @@ public class StarterPipeline {
 				"SELECT Outlet, Week, SalesComponent as eventid, cast(cast(EXTRACT(YEAR from Week) as VARCHAR) || (case when EXTRACT(MONTH from Week) < 10 then '0' || cast(EXTRACT(MONTH from Week) as VARCHAR) else cast(EXTRACT(MONTH from Week) as VARCHAR) END) || (case when EXTRACT(DAY from Week) < 10 then '0' || cast(EXTRACT(DAY from Week) as VARCHAR) else  cast(EXTRACT(DAY from Week) as VARCHAR) END) as BIGINT) as Week1, (CASE when MediaChannel='Digital' then 1 else 5 end) Limit1, AVG(Causal_Value_New) as grp from PCOLLECTION \r\n"
 						+ " WHERE cast(cast(EXTRACT(YEAR from Week) as VARCHAR) || (case when EXTRACT(MONTH from Week) < 10 then '0' || cast(EXTRACT(MONTH from Week) as VARCHAR) else cast(EXTRACT(MONTH from Week) as VARCHAR) END) || (case when EXTRACT(DAY from Week) < 10 then '0' || cast(EXTRACT(DAY from Week) as VARCHAR) else  cast(EXTRACT(DAY from Week) as VARCHAR) END) as BIGINT) >= 20161225 and \r\n"
 						+ " cast(cast(EXTRACT(YEAR from Week) as VARCHAR) || (case when EXTRACT(MONTH from Week) < 10 then '0' || cast(EXTRACT(MONTH from Week) as VARCHAR) else cast(EXTRACT(MONTH from Week) as VARCHAR) END) || (case when EXTRACT(DAY from Week) < 10 then '0' || cast(EXTRACT(DAY from Week) as VARCHAR) else  cast(EXTRACT(DAY from Week) as VARCHAR) END) as BIGINT) <= 20171217 GROUP BY Outlet, SalesComponent, Week, MediaChannel"));
-
 		
 		PCollection<BeamRecord> events = temp.apply(BeamSql
 				.query("SELECT Outlet, Limit1, eventid, Week from PCOLLECTION group by eventid, Week,Limit1,Outlet"));
@@ -1635,55 +1645,91 @@ public class StarterPipeline {
 				"SELECT Outlet, Limit1, eventid,1 as Dummy, MIN(cast(cast(EXTRACT(YEAR from Week) as VARCHAR) || (case when EXTRACT(MONTH from Week) < 10 then '0' || cast(EXTRACT(MONTH from Week) as VARCHAR) else cast(EXTRACT(MONTH from Week) as VARCHAR) END) || (case when EXTRACT(DAY from Week) < 10 then '0' || cast(EXTRACT(DAY from Week) as VARCHAR) else  cast(EXTRACT(DAY from Week) as VARCHAR) END) as BIGINT)) as mindate, \r\n"
 						+ " MAX(cast(cast(EXTRACT(YEAR from Week) as VARCHAR) || (case when EXTRACT(MONTH from Week) < 10 then '0' || cast(EXTRACT(MONTH from Week) as VARCHAR) else cast(EXTRACT(MONTH from Week) as VARCHAR) END) || (case when EXTRACT(DAY from Week) < 10 then '0' || cast(EXTRACT(DAY from Week) as VARCHAR) else  cast(EXTRACT(DAY from Week) as VARCHAR) END) as BIGINT)) as maxdate from PCOLLECTION group by Outlet, eventid, Limit1"));
 
+
 		
 	    PCollectionTuple queryx = PCollectionTuple.of(new TupleTag<BeamRecord>("events2"), events2)
 				.and(new TupleTag<BeamRecord>("X"), X);
 		PCollection<BeamRecord> seq = queryx.apply(BeamSql.queryMulti(
 				"SELECT a.Outlet,a.eventid, a.Limit1, a.Dummy, a.mindate, a.maxdate, b.Weekend, b.EveDate from events2 a RIGHT JOIN X b ON a.Dummy = b.Dummy"));
 
+		
 		// SequenceEvents
 		PCollection<BeamRecord> seqevents = seq.apply(BeamSql.query(
 				"SELECT Outlet, eventid, Limit1,Dummy, mindate, maxdate, Weekend, EveDate, cast(cast(EXTRACT(YEAR from EveDate) as VARCHAR) || (case when EXTRACT(MONTH from EveDate) < 10 then '0' || cast(EXTRACT(MONTH from EveDate) as VARCHAR) else cast(EXTRACT(MONTH from EveDate) as VARCHAR) END) || (case when EXTRACT(DAY from EveDate) < 10 then '0' || cast(EXTRACT(DAY from EveDate) as VARCHAR) else cast(EXTRACT(DAY from EveDate) as VARCHAR) END) as BIGINT) as EveDate1 from PCOLLECTION where Weekend >= mindate and Weekend <= maxdate"));
-
+		
 		// temp2
 		PCollectionTuple queryy = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
 				.and(new TupleTag<BeamRecord>("temp"), temp);
-		PCollection<BeamRecord> tempX = queryy.apply(BeamSql.queryMulti(
-				"select a.Outlet,a.EveDate1,a.Limit1,a.eventid as eventidA,b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
-		PCollection<BeamRecord> temp2 = tempX
-				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+		PCollection<BeamRecord> temp2 = queryy.apply(BeamSql.queryMulti(
+				"select a.Outlet,a.EveDate1 as Weekint,a.Limit1,a.eventid as eventidA, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, \r\n"
+				+ "b.grp from seqevents a left join temp b ON (a.EveDate1 = b.Week1) and (a.eventid = b.eventid) where a.eventid is not null"));
 
-		// temp3
+		
 		PCollectionTuple queryy1 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
 				.and(new TupleTag<BeamRecord>("temp"), temp);
-		PCollection<BeamRecord> tempX1 = queryy1.apply(BeamSql.queryMulti(
-				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA,b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
-		PCollection<BeamRecord> temp3 = tempX1
-				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
-
-		// temp4
+		PCollection<BeamRecord> temp3 = queryy1.apply(BeamSql.queryMulti(
+				"select a.Outlet,a.EveDate1 as Weekint,a.Limit1,a.eventid as eventidA, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, \r\n"
+				+ "b.grp from seqevents a left join temp b ON (a.EveDate1 = b.Week1) and (a.eventid = b.eventid) where a.eventid is not null"));
+		
 		PCollectionTuple queryy2 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
 				.and(new TupleTag<BeamRecord>("temp"), temp);
-		PCollection<BeamRecord> tempX2 = queryy2.apply(BeamSql.queryMulti(
-				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA,b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
-		PCollection<BeamRecord> temp4 = tempX2
-				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
-
-		// temp5
+		PCollection<BeamRecord> temp4 = queryy2.apply(BeamSql.queryMulti(
+				"select a.Outlet,a.EveDate1 as Weekint,a.Limit1,a.eventid as eventidA, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, \r\n"
+				+ "b.grp from seqevents a left join temp b ON (a.EveDate1 = b.Week1) and (a.eventid = b.eventid) where a.eventid is not null"));
+		
 		PCollectionTuple queryy3 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
 				.and(new TupleTag<BeamRecord>("temp"), temp);
-		PCollection<BeamRecord> tempX3 = queryy3.apply(BeamSql.queryMulti(
-				"select a.Outlet, a.EveDate1, a.Limit1, a.eventid as eventidA, b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
-		PCollection<BeamRecord> temp5 = tempX3
-				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
-
-		// temp6
+		PCollection<BeamRecord> temp5 = queryy3.apply(BeamSql.queryMulti(
+				"select a.Outlet,a.EveDate1 as Weekint,a.Limit1,a.eventid as eventidA, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, \r\n"
+				+ "b.grp from seqevents a left join temp b ON (a.EveDate1 = b.Week1) and (a.eventid = b.eventid) where a.eventid is not null"));
+		
 		PCollectionTuple queryy4 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
 				.and(new TupleTag<BeamRecord>("temp"), temp);
-		PCollection<BeamRecord> tempX4 = queryy4.apply(BeamSql.queryMulti(
-				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA, b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
-		PCollection<BeamRecord> temp6 = tempX4
-				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+		PCollection<BeamRecord> temp6 = queryy4.apply(BeamSql.queryMulti(
+				"select a.Outlet,a.EveDate1 as Weekint,a.Limit1,a.eventid as eventidA, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, \r\n"
+				+ "b.grp from seqevents a left join temp b ON (a.EveDate1 = b.Week1) and (a.eventid = b.eventid) where a.eventid is not null"));
+		
+		// cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint,
+
+		
+		//PCollection<BeamRecord> temp2 = tempX
+				//.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+
+				
+//		// temp3
+//		PCollectionTuple queryy1 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
+//				.and(new TupleTag<BeamRecord>("temp"), temp);
+//		PCollection<BeamRecord> tempX1 = queryy1.apply(BeamSql.queryMulti(
+//				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA,b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
+//		PCollection<BeamRecord> temp3 = tempX1
+//				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+//
+//		// temp4
+//		PCollectionTuple queryy2 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
+//				.and(new TupleTag<BeamRecord>("temp"), temp);
+//		PCollection<BeamRecord> tempX2 = queryy2.apply(BeamSql.queryMulti(
+//				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA,b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
+//		PCollection<BeamRecord> temp4 = tempX2
+//				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+//
+//		
+//		// temp5
+//		PCollectionTuple queryy3 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
+//				.and(new TupleTag<BeamRecord>("temp"), temp);
+//		PCollection<BeamRecord> tempX3 = queryy3.apply(BeamSql.queryMulti(
+//				"select a.Outlet, a.EveDate1, a.Limit1, a.eventid as eventidA, b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
+//		PCollection<BeamRecord> temp5 = tempX3
+//				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
+//
+//
+//		
+//		// temp6
+//		PCollectionTuple queryy4 = PCollectionTuple.of(new TupleTag<BeamRecord>("seqevents"), seqevents)
+//				.and(new TupleTag<BeamRecord>("temp"), temp);
+//		PCollection<BeamRecord> tempX4 = queryy4.apply(BeamSql.queryMulti(
+//				"select a.Outlet, a.EveDate1,a.Limit1, a.eventid as eventidA, b.eventid as eventidB, a.Dummy, a.mindate, a.maxdate, a.Weekend, a.EveDate, b.Week, b.Week1, cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) as Weekint, b.grp from seqevents a left join temp b ON a.EveDate1 = b.Week1 where a.eventid is not null"));
+//		PCollection<BeamRecord> temp6 = tempX4
+//				.apply(BeamSql.query("SELECT * from PCOLLECTION where eventidA = eventidB"));
 
 
 		// Query_3 Latest_Spend
@@ -1691,18 +1737,75 @@ public class StarterPipeline {
 		PCollectionTuple querySpend = PCollectionTuple.of(new TupleTag<BeamRecord>("temp2"), temp2)
 				.and(new TupleTag<BeamRecord>("temp3"), temp3).and(new TupleTag<BeamRecord>("temp4"), temp4)
 				.and(new TupleTag<BeamRecord>("temp5"), temp5).and(new TupleTag<BeamRecord>("temp6"), temp6);
-		PCollection<BeamRecord> Duration_Flag = querySpend.apply(BeamSql.queryMulti("SELECT a.*, \r\n" + "(case \r\n"
-				+ "when a.grp > a.Limit1 then 1 \r\n" + "when b.grp > a.Limit1 then 1 \r\n"
-				+ "when c.grp > a.Limit1 then 1 \r\n" + "when d.grp > a.Limit1 then 1 \r\n"
-				+ "when e.grp > a.Limit1 then 1 \r\n" + "else 0 end) as flag \r\n" + "from temp2 a left join \r\n"
-				+ "temp3 b on a.eventidA = b.eventidA and b.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR)) as BIGINT) left join \r\n"
-				+ "temp4 c on a.eventidA = c.eventidA and c.Weekint = cast(sqlUDF2(cast(a.Weekint as VARCHAR)) as BIGINT) left join \r\n"
-				+ "temp5 d on a.eventidA = d.eventidA and d.Weekint = cast(sqlUDF3(cast(a.Weekint as VARCHAR)) as BIGINT) left join \r\n"
-				+ "temp6 e on a.eventidA = e.eventidA and e.Weekint = cast(sqlUDF4(cast(a.Weekint as VARCHAR)) as BIGINT)")
-				.withUdf("sqlUDF1", AddS.class).withUdf("sqlUDF2", AddF.class).withUdf("sqlUDF3", AddT.class)
-				.withUdf("sqlUDF4", AddW.class));
+		PCollection<BeamRecord> Duration_Flag_test = querySpend.apply(BeamSql.queryMulti("SELECT a.grp,a.eventidA,a.Weekint, \r\n"
+				+"b.grp,b.eventidA,b.Weekint,c.grp,c.eventidA,c.Weekint,d.grp,d.eventidA,d.Weekint,e.grp,e.eventidA,e.Weekint, \r\n"
+				+ "(case \r\n"
+				+ "when a.grp >= a.Limit1 then 1 \r\n" + "when b.grp >= a.Limit1 then 1 \r\n"
+				+ "when c.grp >= a.Limit1 then 1 \r\n" + "when d.grp >= a.Limit1 then 1 \r\n"
+				+ "when e.grp >= a.Limit1 then 1 \r\n" + "else 0 end) as flag \r\n" 
+				+ "from temp2 a left join \r\n"
+				+ "temp3 b on a.eventidA = b.eventidA and b.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR),7) as BIGINT) left join \r\n"
+				+ "temp4 c on a.eventidA = c.eventidA and c.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR),14) as BIGINT) left join \r\n"
+				+ "temp5 d on a.eventidA = d.eventidA and d.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR),21) as BIGINT) left join \r\n"
+				+ "temp6 e on a.eventidA = e.eventidA and e.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR),28) as BIGINT)")
+				.withUdf("sqlUDF1", AddS.class));
+
 		
-//		
+		PCollection<BeamRecord> Duration_Flag = Duration_Flag_test.apply(BeamSql.query("select Outlet,Weekint,Limit1,eventidA,Dummy,mindate, \r\n"
+				+ "maxdate,Weekend,EveDate,duration_flag_UDF(grp) as grp,flag FROM PCOLLECTION ").withUdf("duration_flag_UDF", duration_flag_UDF.class));
+
+//		PCollection<Durationflag> Durationflag = Duration_Flag.apply(ParDo.of(new DoFn<BeamRecord, Durationflag>() {
+//		private static final long serialVersionUID = 1L;
+//
+//		@ProcessElement
+//		public void processElement(ProcessContext c) throws ParseException {
+//			BeamRecord record = c.element();
+//			String strArr = record.toString();
+//			String strArr1 = strArr.substring(24);
+//			String xyz = strArr1.replace("]", "");
+//			String[] strArr2 = xyz.split(",");
+//			Durationflag moc = new Durationflag();
+//			moc.setOutlet(strArr2[0]);
+//			moc.setWeekint(strArr2[1]);
+//			moc.setLimit1(strArr2[2]);
+//			moc.setEventidA(strArr2[3]);
+//			moc.setDummy(strArr2[4]);
+//			moc.setMindate(strArr2[5]);
+//			moc.setMaxdate(strArr2[6]);
+//			moc.setWeekend(strArr2[7]);
+//			moc.setEveDate(strArr2[8]);
+//			moc.setGrp(Double.parseDouble(strArr2[9]));
+//			moc.setFlag(Double.parseDouble(strArr2[10]));
+//      		c.output(moc);
+//		}
+//	}));
+//	TableSchema tableSchema = new TableSchema().setFields(
+//			ImmutableList.of(new TableFieldSchema().setName("Outlet").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("Weekint").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("Limit1").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("eventidA").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("Dummy").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("mindate").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("maxdate").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("Weekend").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("EveDate").setType("STRING").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("grp").setType("FLOAT64").setMode("NULLABLE"),
+//					new TableFieldSchema().setName("flag").setType("FLOAT64").setMode("NULLABLE")
+//					));
+//	TableReference tableSpec = BigQueryHelpers.parseTableSpec("ad-efficiency-dev:Ad_Efficiency.Durationflag"); // project_id:Dataset.table
+//	System.out.println("Start Bigquery");
+//	
+//	Durationflag
+//			.apply(MapElements.into(TypeDescriptor.of(TableRow.class)).via((Durationflag elem) -> new TableRow()
+//					.set("Outlet", elem.Outlet).set("Weekint", elem.Weekint).set("Limit1", elem.Limit1)
+//					.set("eventidA", elem.eventidA)
+//					.set("Dummy", elem.Dummy).set("mindate", elem.mindate).set("maxdate", elem.maxdate)
+//					.set("Weekend", elem.Weekend)
+//					.set("EveDate", elem.EveDate).set("grp", elem.grp).set("flag", elem.flag)
+//					))
+//			.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
+//					.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
+//					.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
 		
 //		// Query_14 Execution_start
 		PCollection<BeamRecord> rec_14 = rec_13.apply(BeamSql.query(
@@ -1752,9 +1855,9 @@ public class StarterPipeline {
 						+ "a.PeriodStartDate, a.BrandChapter, a.PeriodEndDate, a.MediaChannel ,a.ConsumerBehavior,MIN(cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT)) as CopyStartWithinPeriod, MAX(cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT)) as CopyEndWithinPeriod, a.GRPs \r\n"
 						+ "from rec_17 a left join hispanic_6 b \r\n" + "on a.Channel = b.Outlet and \r\n"
 						+ "a.Beneficiary = b.Beneficiary and \r\n" + "a.Event = b.SalesComponent \r\n"
-						+ "WHERE cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
-						+ "cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) and \r\n"
-						+ "b.Causal_Value_New > 0.0 \r\n"
+						//+ "WHERE cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
+						//+ "cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) and \r\n"
+						+ "WHERE b.Causal_Value_New > 0.0 \r\n"
 						+ "group by a.SourceBDA,a.Country,a.Market, a.BrandChapter,a.SubChannel,a.EventName,a.Event,a.Catlib,a.Beneficiary,a.Channel,a.Actual_Period,PeriodStartDate,PeriodEndDate,GRPs,a.MediaChannel ,a.ConsumerBehavior"));
 
 		// Query_19 Duration
@@ -1764,9 +1867,10 @@ public class StarterPipeline {
 				"select a.SourceBDA,a.Country,a.Market, a.SubChannel, a.EventName, a.Event, a.Catlib, a.Beneficiary, a.Channel, a.Actual_Period, \r\n"
 						+ "		 a.PeriodStartDate, a.PeriodEndDate, a.BrandChapter,a.GRPs, a.CopyStartWithinPeriod ,a.CopyEndWithinPeriod, a.MediaChannel ,a.ConsumerBehavior, SUM(b.Flag) as Duration from rec_18 as a \r\n"
 						+ "        left join Duration_Flag b \r\n" + "        on a.Channel = b.Outlet and \r\n"
-						+ "        a.Event = b.EventidA WHERE \r\n"
-						+ "        cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
-						+ "		 cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) \r\n"
+						+ "        a.Event = b.EventidA \r\n"
+						//+ "WHERE \r\n"
+						//+ "        b.Weekint >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
+						//+ "		   b.Weekint <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) \r\n"
 						+ "        group by a.SourceBDA,a.Country,a.Market, a.SubChannel, a.EventName, a.Event, a.Catlib, a.Beneficiary, a.Channel, a.Actual_Period, \r\n"
 						+ "		 a.PeriodStartDate, a.PeriodEndDate, a.BrandChapter,a.GRPs, a.CopyStartWithinPeriod ,a.CopyEndWithinPeriod, a.MediaChannel ,a.ConsumerBehavior "));
 
@@ -2017,29 +2121,30 @@ public class StarterPipeline {
 						+ "PeriodEndDate,GRPs,Duration,Continuity,ReportedSpend,ModeledSpend,Level,DuetoVolume, ProjectionFactor,ChannelVolume, AllOutletVolume,Volume,Alpha,Beta,rNR,rNCS,rCtb,rAC,EventName, \r\n"
 						+ "Studio,Neighborhoods,BU,Division,MediaChannel"));
 
-
+	
 //		
 //		// Cont queries
 //		// Vehicle_Cont1
 		PCollection<BeamRecord> Cont1 = rec_30_BasisAgg.apply(BeamSql.query(
-				"select *,case when (GRPs/Typical) <= Duration then GRPs/Typical else Duration end as Cont1 from PCOLLECTION"));
+				"select *,(case when (GRPs/Typical) <= Duration then GRPs/Typical else Duration end) as Cont1 from PCOLLECTION"));
 
-		
+	
 		// Vehicle_Cont2 take only integer part of Cont1
 		PCollection<BeamRecord> Cont2 = Cont1.apply(BeamSql.query(
-				"Select *, (case when Cont1 >= cast('1.00' as double) then cast(Cont1 as INTEGER) else cast('1.00' as double) end) as Cont2 from PCOLLECTION"));
+				"Select *, (case when Cont1 >= cast('1.00' as DOUBLE) then cast(Cont1 as INTEGER) else cast('1.00' as DOUBLE) end) as Cont2 from PCOLLECTION"));
 
 		
+
 		// Vehicle_Cont3
 		PCollection<BeamRecord> Cont3 = Cont2.apply(BeamSql.query(
-				"Select *, case when Duration = cast('0.00' as double) or Duration is null then cast('0.00' as double) else (Cont2/Duration)*100 end as Cont3 from PCOLLECTION"));
+				"Select *, (case when Duration = cast('0.00' as DOUBLE) or Duration is null then cast('0.00' as DOUBLE) else (Cont2/Duration)*100 end) as Cont3 from PCOLLECTION"));
 
 		
 		// Vehicle_Cont4
 		PCollection<BeamRecord> Cont4 = Cont3.apply(BeamSql.query(
 				"Select *, (case when Continuity is null OR MediaChannel <> 'Linear TV' then Cont3 else Continuity end) as Cont from PCOLLECTION"));
 		
-		
+	
 //		PCollection<BeamRecord> temp_cal = Cont4.apply(BeamSql.query(
 //				"SELECT *,GRPs/Duration/Cont*BASIS_PY*Duration/BASIS_Duration_PY/ReportedSpend as X1, \r\n"
 //						+ " PeriodStartDate, PeriodEndDate, GRPs, Duration, Continuity, ReportedSpend, ModeledSpend, DuetoVolume,ProjectionFactor, \r\n"
@@ -2053,16 +2158,17 @@ public class StarterPipeline {
 
 
 		// Calculated fields Filter removed
-	PCollection<BeamRecord> rec_30_BasisCalc = Cont4.apply(BeamSql.query(
+		PCollection<BeamRecord> rec_30_BasisCalc = Cont4.apply(BeamSql.query(
 				"SELECT SourceBDA,Country,Market,SubChannel,MediaChannel,ConsumerBehavior,BrandChapter,Beneficiary,Channel,Actual_Period, \r\n"
 						+ " PeriodStartDate, PeriodEndDate, GRPs, Duration, Continuity, ReportedSpend, ModeledSpend, DuetoVolume,ProjectionFactor, \r\n"
 						+ " Volume,Alpha,Beta,rNR,rNCS,rCtb,rAC,EventName,Level,Studio,Neighborhoods,BU,Division,BASIS_PY,BASIS_P2Y, \r\n"
 						+ " BASIS_P3Y,BASIS_Duration_PY,BASIS_Duration_P2Y,BASIS_Duration_P3Y,Typical, Cont, \r\n"
-						+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS double),cast(ReportedSpend as Double))as X1, \r\n" 
-						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS double),cast(ReportedSpend as Double)) as X1_2, \r\n"
-					    + "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS double),cast(ReportedSpend as Double)) as X1_3, \r\n"
+						+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS DOUBLE),cast(ReportedSpend as DOUBLE))as X1, \r\n" 
+						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_2, \r\n"
+					    + "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_3, \r\n"
 						+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, 'CalenderYear' as PeriodType, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ").withUdf("durationUDF", durationUDF.class).withUdf("X2UDF", X2UDF.class));
 
+	
 		// Converting Beam Record into Class type to implement Gamma function
 		PCollection<VehicleGamma> rec_30Gamma = rec_30_BasisCalc.apply(ParDo.of(new DoFn<BeamRecord, VehicleGamma>() {
 			private static final long serialVersionUID = 1L;
@@ -2186,14 +2292,25 @@ public class StarterPipeline {
 				
 			}
 		})).setCoder(appTypeG.getRecordCoder());
+		
+
 			
 		PCollection<BeamRecord> vehicle_gamma = appsG.apply(BeamSql.query(
-				"Select *,GAMMAUDF(cast(Gamma_X1 as DOUBLE),CAST(Gamma_X2 as DOUBLE),cast(ReportedSpend as DOUBLE),cast(BASIS_Duration_PY as DOUBLE),CAST(Duration as DOUBLE),cast(BASIS_PY as DOUBLE)) as Xnorm1, \r\n" + 
+				"Select *,GAMMAUDF(Gamma_X1,Gamma_X2,ReportedSpend,BASIS_Duration_PY,Duration,cast(BASIS_PY as DOUBLE)) as Xnorm1, \r\n" + 
 				"GAMMAUDF(cast(Gamma_X1_2 as DOUBLE),CAST(Gamma_X2 as DOUBLE),cast(ReportedSpend as DOUBLE),cast(BASIS_Duration_P2Y as DOUBLE),CAST(Duration as DOUBLE),cast(BASIS_P2Y as DOUBLE)) as Xnorm2, \r\n" + 
 				"GAMMAUDF(cast(Gamma_X1_3 as DOUBLE),CAST(Gamma_X2 as DOUBLE),cast(ReportedSpend as DOUBLE),cast(BASIS_Duration_P3Y as DOUBLE),CAST(Duration as DOUBLE),cast(BASIS_P3Y as DOUBLE)) as Xnorm3 \r\n" + 
 				" from PCOLLECTION  ").withUdf("GAMMAUDF", GAMMAUDF.class));
 
-		
+//		PCollection<String> gs_output_finals = vehicle_gamma.apply(ParDo.of(new DoFn<BeamRecord, String>() {
+//		private static final long serialVersionUID = 1L;
+//
+//		@ProcessElement
+//		public void processElement(ProcessContext c) {
+//			c.output(c.element().toString());
+//			System.out.println(c.element().toString());
+//		}
+//	}));
+//	gs_output_finals.apply(TextIO.write().to("gs://cloroxtegadeff/output/vehicle_gamma_c2"));
 
 		
 		
@@ -2270,8 +2387,8 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_37 = rec_36.apply(BeamSql.query(
 				"select SourceBDA, Country, CatLib,Market, SubChannel, EventName, BrandChapter, Beneficiary, Channel, Actual_Period, \r\n"
 						+ "PeriodStartDate, PeriodEndDate, GRPs ,Duration, Continuity, ReportedSpend, ModeledSpend, DuetoVolume, ProjectionFactor,ChannelVolume,AllOutletVolume, \r\n"
-						+ " (Case when ProjectionFactor = cast('0.00' as double) or ProjectionFactor is null then cast('0.00' as double) \r\n"
-						+ " when ReportedSpend <> cast('0.00' as double) then ((DuetoVolume/(ModeledSpend/ReportedSpend))/ProjectionFactor) else (DuetoVolume/ProjectionFactor) end) as Volume,MediaChannel ,ConsumerBehavior from PCOLLECTION"));
+						+ " (Case when ProjectionFactor = cast('0.00' as DOUBLE) or ProjectionFactor is null then cast('0.00' as DOUBLE) \r\n"
+						+ " when ReportedSpend <> cast('0.00' as DOUBLE) then ((DuetoVolume/(ModeledSpend/ReportedSpend))/ProjectionFactor) else (DuetoVolume/ProjectionFactor) end) as Volume,MediaChannel ,ConsumerBehavior from PCOLLECTION"));
 
 		
 		//Query_38  Campaign_Curves
@@ -2312,20 +2429,20 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_41 = rec_40.apply(BeamSql.query(
 				"SELECT SourceBDA,Country,Market, CatLib, SubChannel,Actual_Period,MediaChannel,ConsumerBehavior,BrandChapter,Beneficiary,Channel,PeriodStartDate,PeriodEndDate,GRPs,Duration,Continuity,ReportedSpend,ModeledSpend,DuetoVolume,\r\n"
 						+ "ProjectionFactor,ChannelVolume,AllOutletVolume,Volume,Alpha,Beta,rNR,rNCS,rCtb,rAC,EventName,Level,Studio,Neighborhoods,BU,\r\n"
-						+ "Division,Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
+						+ "Division,(Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
 						+ "when (MediaChannel = 'Linear TV' and Market = 'Hispanic') Then 3500000 \r\n"
-						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 end as BASIS_PY,\r\n"
-						+ "Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
+						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 else 0 end) as BASIS_PY,\r\n"
+						+ "(Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
 						+ "when (MediaChannel = 'Linear TV' and Market = 'Hispanic') Then 3500000 \r\n"
-						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 end as BASIS_P2Y,\r\n"
-						+ "Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
+						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 else 0 end) as BASIS_P2Y,\r\n"
+						+ "(Case\r\n" + "when (MediaChannel = 'Digital' and Market = 'GM') Then 2000000 \r\n"
 						+ "when (MediaChannel = 'Linear TV' and Market = 'Hispanic') Then 3500000  \r\n"
-						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 end as BASIS_P3Y,\r\n"
-						+ "Case\r\n" + "when (MediaChannel = 'Digital') Then 75 \r\n"
+						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 7500000 else 0 end) as BASIS_P3Y,\r\n"
+						+ "(Case\r\n" + "when (MediaChannel = 'Digital') Then 75 \r\n"
 						+ "when (MediaChannel = 'Linear TV' and Market = 'Hispanic') Then 60 \r\n"
 						+ "when (MediaChannel = 'Linear TV' and Market = 'GM') Then 90 \r\n"
 						+ "when (MediaChannel = 'Radio') Then 12.50 \r\n"
-						+ "when (MediaChannel = 'Print') Then 12.50 end as Typical, 52 as BASIS_Duration_PY, 52 as BASIS_Duration_P2Y,52 as BASIS_Duration_P3Y from PCOLLECTION"));
+						+ "when (MediaChannel = 'Print') Then 12.50 end) as Typical, 52 as BASIS_Duration_PY, 52 as BASIS_Duration_P2Y,52 as BASIS_Duration_P3Y from PCOLLECTION"));
 
 
 		// Campaign_Cont1 removed Typical
@@ -2334,18 +2451,18 @@ public class StarterPipeline {
 
 		// Campaign_Cont2 take only integer part of Cont1
 		PCollection<BeamRecord> C_Cont2 = C_Cont1.apply(BeamSql.query(
-				" Select *, case when Cont1 >= cast('1.00' as double) then Cont1 else cast('1.00' as double) end as Cont2 from PCOLLECTION"));
+				" Select *, (case when Cont1 >= cast('1.00' as DOUBLE) then Cont1 else cast('1.00' as DOUBLE) end) as Cont2 from PCOLLECTION"));
 
 		
 		// Campaign_Cont3
 		PCollection<BeamRecord> C_Cont3 = C_Cont2.apply(BeamSql.query(
-				" Select *, case when Duration = cast('0.00' as double) or Duration is null then cast('0.00' as double) else (Cont2/Duration)*100 end as Cont3 from PCOLLECTION"));
+				" Select *, (case when Duration = cast('0.00' as DOUBLE) or Duration is null then cast('0.00' as DOUBLE) else (Cont2/Duration)*100 end) as Cont3 from PCOLLECTION"));
 		
 		// Campaign_Cont4
 		PCollection<BeamRecord> C_Cont4 = C_Cont3.apply(BeamSql.query(
-				" Select *, case when Continuity is null OR MediaChannel <> 'Linear TV' then Cont3 else Continuity end as Cont from PCOLLECTION"));
+				" Select *, (case when Continuity is null OR MediaChannel <> 'Linear TV' then Cont3 else Continuity end) as Cont from PCOLLECTION"));
 
-		
+
 		
 		// Calculated fields
 	PCollection<BeamRecord> rec_42 = C_Cont4.apply(BeamSql.query(
@@ -2353,12 +2470,10 @@ public class StarterPipeline {
 										+ " PeriodStartDate, PeriodEndDate, GRPs, Duration, Continuity, ReportedSpend, ModeledSpend, DuetoVolume,ProjectionFactor, \r\n"
 										+ " Volume,Alpha,Beta,rNR,rNCS,rCtb,rAC,EventName,Level,Studio,Neighborhoods,BU,Division,BASIS_PY,BASIS_P2Y, \r\n"
 										+ " BASIS_P3Y,BASIS_Duration_PY,BASIS_Duration_P2Y,BASIS_Duration_P3Y,Typical, Cont, \r\n"
-										+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS double),cast(ReportedSpend as Double))as X1, \r\n" 
-										+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS double),cast(ReportedSpend as Double)) as X1_2, \r\n"
-									    + "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS double),cast(ReportedSpend as Double)) as X1_3, \r\n"
+										+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS DOUBLE),cast(ReportedSpend as DOUBLE))as X1, \r\n" 
+										+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_2, \r\n"
+									    + "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_3, \r\n"
 										+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, 'CalenderYear' as PeriodType, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ").withUdf("durationUDF", durationUDF.class).withUdf("X2UDF", X2UDF.class));
-
-		// GRPs/Duration/Cont
 
 
 		// Converting Beam Record into Class type to implement Gamma function
@@ -2483,7 +2598,7 @@ public class StarterPipeline {
 				c.output(br);
 			}
 		})).setCoder(appTypeG1.getRecordCoder());
-		
+	
 		PCollection<BeamRecord> campaign_gamma = appsG1.apply(BeamSql.query(
 				"Select *,GAMMAUDF(cast(Gamma_X1 as DOUBLE),CAST(Gamma_X2 as DOUBLE),cast(ReportedSpend as DOUBLE),cast(BASIS_Duration_PY as DOUBLE),CAST(Duration as DOUBLE),cast(BASIS_PY as DOUBLE)) as Xnorm1, \r\n"
 						+ "GAMMAUDF(cast(Gamma_X1_2 as DOUBLE),CAST(Gamma_X2 as DOUBLE),cast(ReportedSpend as DOUBLE),cast(BASIS_Duration_P2Y as DOUBLE),CAST(Duration as DOUBLE),cast(BASIS_P2Y as DOUBLE)) as Xnorm2, \r\n"
@@ -2501,7 +2616,7 @@ public class StarterPipeline {
 //				System.out.println(c.element().toString());
 //			}
 //		}));
-//		gs_output_final.apply(TextIO.write().to("gs://cloroxtegadeff/output/campaign_gamma_new"));
+//		gs_output_final.apply(TextIO.write().to("gs://cloroxtegadeff/output/campaign_gamma_c2"));
 		
 		// UNION ALL
 		PCollectionTuple queryUnion = PCollectionTuple.of(new TupleTag<BeamRecord>("vehicle_gamma"), vehicle_gamma)
@@ -2674,7 +2789,7 @@ public class StarterPipeline {
 						.set("Gamma_X1_2", elem.Gamma_X1_2).set("Gamma_X1_3", elem.Gamma_X1_3).set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   
+						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));    
 
 		p.run().waitUntilFinish();
 	}
