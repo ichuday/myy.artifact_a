@@ -1103,7 +1103,7 @@ public class StarterPipeline {
 					}
 				}
 			}
-		}));
+		}).withSideInputs(weeklyC));
 
 		List<String> fieldNames = Arrays.asList("Outlet", "Catlib", "ProdKey", "Geogkey", "Week", "SalesComponent",
 				"Dueto_value", "PrimaryCausalKey", "Causal_value", "Iteration", "SourceBDA","Country");
@@ -1124,9 +1124,13 @@ public class StarterPipeline {
 				c.output(br);
 			}
 		})).setCoder(appTypeX.getRecordCoder());
-		PCollection<BeamRecord> weekD = appsX.apply(Window.<BeamRecord>into(new GlobalWindows())
+		PCollection<BeamRecord> weekD1 = appsX.apply(Window.<BeamRecord>into(new GlobalWindows())
 				.triggering(Repeatedly.forever(AfterWatermark.pastEndOfWindow()))
 				.withAllowedLateness(org.joda.time.Duration.standardMinutes(1)).discardingFiredPanes());
+
+		
+	PCollection<BeamRecord> weekD = weekD1
+			.apply(BeamSql.query("SELECT DISTINCT * FROM PCOLLECTION"));
 
 		
 //		// implement EVNTEXEC.csv
@@ -1406,61 +1410,61 @@ public class StarterPipeline {
 				"SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend, \r\n"
 						+ "ModeledSpend from PCOLLECTION"));
 
-//		PCollection<ClassSpend> ClassSpend_test = rec_6_test.apply(ParDo.of(new DoFn<BeamRecord, ClassSpend>() {
-//		private static final long serialVersionUID = 1L;
-//
-//		@ProcessElement
-//		public void processElement(ProcessContext c) throws ParseException {
-//			BeamRecord record = c.element();
-//			String strArr = record.toString();
-//			String strArr1 = strArr.substring(24);
-//			String xyz = strArr1.replace("]", "");
-//			String[] strArr2 = xyz.split(",");
-//			ClassSpend moc = new ClassSpend();
-//			moc.setFiscalYear(strArr2[0]);
-//			moc.setFiscalQuarter(strArr2[1]);
-//			moc.setBrandChapter(strArr2[2]);
-//			moc.setMarket(strArr2[3]);
-//			moc.setConsumerBehavior(strArr2[4]);
-//			moc.setChannel(strArr2[5]);
-//			moc.setSubChannel(strArr2[6]);
-//			moc.setCampaign(strArr2[7]);
-//			moc.setEventName(strArr2[8]);
-//			moc.setEventKey(strArr2[9]);
-//			moc.setReportedSpend(Double.parseDouble(strArr2[10]));
-//			moc.setModeledSpend(Double.parseDouble(strArr2[11]));	
-//			c.output(moc);
-//		}
-//	}));
-//	TableSchema tableSchema = new TableSchema().setFields(
-//			ImmutableList.of(new TableFieldSchema().setName("FiscalYear").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("FiscalQuarter").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("BrandChapter").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("Market").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("ConsumerBehavior").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("Channel").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("SubChannel").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("Campaign").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("EventName").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("EventKey").setType("STRING").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("ReportedSpend").setType("FLOAT64").setMode("NULLABLE"),
-//					new TableFieldSchema().setName("ModeledSpend").setType("FLOAT64").setMode("NULLABLE")
-//					));
-//	TableReference tableSpec = BigQueryHelpers.parseTableSpec("ad-efficiency-dev:Ad_Efficiency.Spend_Combined_Beam"); // project_id:Dataset.table
-//	System.out.println("Start Bigquery");
-//	
-//	ClassSpend_test
-//			.apply(MapElements.into(TypeDescriptor.of(TableRow.class)).via((ClassSpend elem) -> new TableRow()
-//					.set("FiscalYear", elem.FiscalYear).set("FiscalQuarter", elem.FiscalQuarter).set("BrandChapter", elem.BrandChapter)
-//					.set("Market", elem.Market).set("ConsumerBehavior", elem.ConsumerBehavior).set("Channel", elem.Channel).set("SubChannel", elem.SubChannel)
-//					.set("Campaign", elem.Campaign).set("EventName", elem.EventName).set("EventKey", elem.EventKey).set("ReportedSpend", elem.ReportedSpend)
-//					.set("ModeledSpend", elem.ModeledSpend)))
-//			.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
-//					.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-//					.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
+		PCollection<ClassSpend> ClassSpend_test = rec_6_test.apply(ParDo.of(new DoFn<BeamRecord, ClassSpend>() {
+		private static final long serialVersionUID = 1L;
+
+		@ProcessElement
+		public void processElement(ProcessContext c) throws ParseException {
+			BeamRecord record = c.element();
+			String strArr = record.toString();
+			String strArr1 = strArr.substring(24);
+			String xyz = strArr1.replace("]", "");
+			String[] strArr2 = xyz.split(",");
+			ClassSpend moc = new ClassSpend();
+			moc.setFiscalYear(strArr2[0]);
+			moc.setFiscalQuarter(strArr2[1]);
+			moc.setBrandChapter(strArr2[2]);
+			moc.setMarket(strArr2[3]);
+			moc.setConsumerBehavior(strArr2[4]);
+			moc.setChannel(strArr2[5]);
+			moc.setSubChannel(strArr2[6]);
+			moc.setCampaign(strArr2[7]);
+			moc.setEventName(strArr2[8]);
+			moc.setEventKey(strArr2[9]);
+			moc.setReportedSpend(Double.parseDouble(strArr2[10]));
+			moc.setModeledSpend(Double.parseDouble(strArr2[11]));	
+			c.output(moc);
+		}
+	}));
+	TableSchema tableSchema = new TableSchema().setFields(
+			ImmutableList.of(new TableFieldSchema().setName("FiscalYear").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("FiscalQuarter").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("BrandChapter").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("Market").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("ConsumerBehavior").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("Channel").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("SubChannel").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("Campaign").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("EventName").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("EventKey").setType("STRING").setMode("NULLABLE"),
+					new TableFieldSchema().setName("ReportedSpend").setType("FLOAT64").setMode("NULLABLE"),
+					new TableFieldSchema().setName("ModeledSpend").setType("FLOAT64").setMode("NULLABLE")
+					));
+	TableReference tableSpec = BigQueryHelpers.parseTableSpec("ad-efficiency-dev:Ad_Efficiency.Spend_Combined_Beam"); // project_id:Dataset.table
+	System.out.println("Start Bigquery");
+	
+	ClassSpend_test
+			.apply(MapElements.into(TypeDescriptor.of(TableRow.class)).via((ClassSpend elem) -> new TableRow()
+					.set("FiscalYear", elem.FiscalYear).set("FiscalQuarter", elem.FiscalQuarter).set("BrandChapter", elem.BrandChapter)
+					.set("Market", elem.Market).set("ConsumerBehavior", elem.ConsumerBehavior).set("Channel", elem.Channel).set("SubChannel", elem.SubChannel)
+					.set("Campaign", elem.Campaign).set("EventName", elem.EventName).set("EventKey", elem.EventKey).set("ReportedSpend", elem.ReportedSpend)
+					.set("ModeledSpend", elem.ModeledSpend)))
+			.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
+					.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
+					.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
 		
 		// Query_8
-		PCollection<BeamRecord> rec_8 = brandsH
+/*		PCollection<BeamRecord> rec_8 = brandsH
 				.apply(BeamSql.query("SELECT DISTINCT Catlib, ProdKey from PCOLLECTION where ProdKey <> 'null'"));
 
 		
@@ -1470,7 +1474,7 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_9 = query4.apply(BeamSql.queryMulti(
 				"SELECT a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Geogkey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey, (case when a.Causal_value is null then cast('0.00' as double) else a.Causal_value end) as  Causal_value  ,a.Country, a.Iteration ,b.ProdKey from weekD as a \r\n"
 						+ "INNER JOIN rec_8 as b on a.Catlib = b.Catlib and a.ProdKey = b.ProdKey"));
-
+		
 		
 		// Query_10 BrandMap
 	PCollectionTuple query5 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_9"), rec_9)
@@ -1627,7 +1631,7 @@ public class StarterPipeline {
 		
 		
 //		// Duration Query calculation part
-  PCollection<BeamRecord> X = Wknd.apply(BeamSql.query(
+   PCollection<BeamRecord> X = Wknd.apply(BeamSql.query(
 				"SELECT EveDate,1 as Dummy, cast(cast(EXTRACT(YEAR from EveDate) as VARCHAR) || (case when EXTRACT(MONTH from EveDate) < 10 then '0' || cast(EXTRACT(MONTH from EveDate) as VARCHAR) else cast(EXTRACT(MONTH from EveDate) as VARCHAR) END) || (case when EXTRACT(DAY from EveDate) < 10 then '0' || cast(EXTRACT(DAY from EveDate) as VARCHAR) else cast(EXTRACT(DAY from EveDate) as VARCHAR) END) as BIGINT) as Weekend from PCOLLECTION"));
 
 
@@ -1737,8 +1741,7 @@ public class StarterPipeline {
 		PCollectionTuple querySpend = PCollectionTuple.of(new TupleTag<BeamRecord>("temp2"), temp2)
 				.and(new TupleTag<BeamRecord>("temp3"), temp3).and(new TupleTag<BeamRecord>("temp4"), temp4)
 				.and(new TupleTag<BeamRecord>("temp5"), temp5).and(new TupleTag<BeamRecord>("temp6"), temp6);
-		PCollection<BeamRecord> Duration_Flag_test = querySpend.apply(BeamSql.queryMulti("SELECT a.grp,a.eventidA,a.Weekint, \r\n"
-				+"b.grp,b.eventidA,b.Weekint,c.grp,c.eventidA,c.Weekint,d.grp,d.eventidA,d.Weekint,e.grp,e.eventidA,e.Weekint, \r\n"
+		PCollection<BeamRecord> Duration_Flag_test = querySpend.apply(BeamSql.queryMulti("SELECT a.*, \r\n"
 				+ "(case \r\n"
 				+ "when a.grp >= a.Limit1 then 1 \r\n" + "when b.grp >= a.Limit1 then 1 \r\n"
 				+ "when c.grp >= a.Limit1 then 1 \r\n" + "when d.grp >= a.Limit1 then 1 \r\n"
@@ -1750,7 +1753,7 @@ public class StarterPipeline {
 				+ "temp6 e on a.eventidA = e.eventidA and e.Weekint = cast(sqlUDF1(cast(a.Weekint as VARCHAR),28) as BIGINT)")
 				.withUdf("sqlUDF1", AddS.class));
 
-		
+
 		PCollection<BeamRecord> Duration_Flag = Duration_Flag_test.apply(BeamSql.query("select Outlet,Weekint,Limit1,eventidA,Dummy,mindate, \r\n"
 				+ "maxdate,Weekend,EveDate,duration_flag_UDF(grp) as grp,flag FROM PCOLLECTION ").withUdf("duration_flag_UDF", duration_flag_UDF.class));
 
@@ -2789,7 +2792,7 @@ public class StarterPipeline {
 						.set("Gamma_X1_2", elem.Gamma_X1_2).set("Gamma_X1_3", elem.Gamma_X1_3).set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   
+						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));   */
 
 		p.run().waitUntilFinish();
 	}
