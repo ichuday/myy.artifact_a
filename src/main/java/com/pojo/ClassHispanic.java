@@ -14,6 +14,7 @@ public class ClassHispanic implements Serializable{
 	public String CommercialDuration;
 	public double Advertisement_id;
 	public double TVHousehold;
+	
 	public String getMarket() {
 		return Market;
 	}
