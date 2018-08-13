@@ -820,6 +820,7 @@ public class StarterPipeline {
 					ce.setCampaign(strArr[7].trim());
 					ce.setEventName(strArr[8].trim());
 					ce.setEventKey(strArr[9].trim());
+		//			Double d = Double.valueOf(strArr[10].replace("$", "").replace(",", "").trim()) ;
 					if (strArr[10].isEmpty()) {
 						ce.setReportedSpend(0.00);
 					} else {
@@ -863,7 +864,7 @@ public class StarterPipeline {
 
 		//
 //				// implement Brands_hierarchy.csv
-		PCollection<String> brand_read = p
+/*		PCollection<String> brand_read = p
 				.apply(TextIO.read().from("gs://cloroxtegadeff/final_input/BrandHirarchy.csv"));
 		PCollection<ClassBrands> pojos1 = brand_read.apply(ParDo.of(new DoFn<String, ClassBrands>() { // converting
 																										// String into
@@ -2805,10 +2806,11 @@ public class StarterPipeline {
 						.set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));  
+						.withWriteDisposition(WriteDisposition.WRITE_APPEND));    */
 
 		
 		//WRITE_TRUNCATE
+		//WRITE_APPEND
 		p.run().waitUntilFinish();
 	}
 }
