@@ -393,7 +393,34 @@ public class StarterPipeline {
 			return g;
 		}
 	}
+	public static class rec4UDF implements BeamSqlUdf {
+		private static final long serialVersionUID = 1L;
 
+		public static String eval(String a, String b) throws ParseException {
+			String g = "";
+			if (a == "Digital") {
+				g = "GM";
+			} else {
+				g = b;
+			}
+			return g;
+		}
+	}
+	
+	public static class rec4compUDF implements BeamSqlUdf {
+		private static final long serialVersionUID = 1L;
+
+		public static String eval(Integer a, String b) throws ParseException {
+			String g = "";
+			if (a == 1) {
+				g = b;
+			} else {
+				g = "Composite";
+			}
+			return g;
+		}
+	}
+	
 	public static class rec_19_testUDF implements BeamSqlUdf {
 		private static final long serialVersionUID = 1L;
 
@@ -430,6 +457,21 @@ public class StarterPipeline {
 			Double g = (double) 0;
 			if (a == null) {
 				g = 0.0;
+			} else {
+				g = a;
+			}
+			return g;
+		}
+
+	}
+	
+	public static class rec_3_3UDF implements BeamSqlUdf {
+		private static final long serialVersionUID = 1L;
+
+		public static Integer eval(Integer a) throws ParseException {
+			Integer g =  0;
+			if (a == null) {
+				g = 0;
 			} else {
 				g = a;
 			}
@@ -513,6 +555,7 @@ public class StarterPipeline {
 //			}
 		}
 	}
+
 
 	// main method
 	public static void main(String[] args)
@@ -864,7 +907,7 @@ public class StarterPipeline {
 
 		//
 //				// implement Brands_hierarchy.csv
-/*		PCollection<String> brand_read = p
+		PCollection<String> brand_read = p
 				.apply(TextIO.read().from("gs://cloroxtegadeff/final_input/BrandHirarchy.csv"));
 		PCollection<ClassBrands> pojos1 = brand_read.apply(ParDo.of(new DoFn<String, ClassBrands>() { // converting
 																										// String into
@@ -981,6 +1024,7 @@ public class StarterPipeline {
 //				
 //				// implement CompositeEvents.csv
 		PCollection<String> event_read = p.apply(TextIO.read().from("gs://cloroxtegadeff/final_input/Events/EVENTS"));
+
 		PCollection<ClassEvents> pojos3 = event_read.apply(ParDo.of(new DoFn<String, ClassEvents>() { // converting
 																										// String into
 																										// class
@@ -1035,6 +1079,7 @@ public class StarterPipeline {
 		PCollection<BeamRecord> Event = Event1.apply(
 				BeamSql.query("SELECT DISTINCT EventType, EventKey, EventName, EventComponents from PCOLLECTION"));
 
+		
 //				PCollection<Composite_events> Composite_events = Event.apply(ParDo.of(new DoFn<BeamRecord, Composite_events>() {
 //					private static final long serialVersionUID = 1L;
 		//
@@ -1405,21 +1450,53 @@ public class StarterPipeline {
 				"SELECT a.FiscalYear, a.FiscalQuarter, a.BrandChapter, a.Market, a.ConsumerBehavior, a.Channel, a.SubChannel, \r\n"
 						+ " a.Campaign, a.EventName, a.EventKey, a.ReportedSpend, a.ModeledSpend, a.Summed, a.Dummy, b.maxed, b.least from rec_1 a INNER JOIN rec_2 b on a.Dummy = b.Dummy where a.Summed > least and a.Summed <= maxed "));
 
-//		// Query_4
-		PCollectionTuple query1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
-				.and(new TupleTag<BeamRecord>("Event"), Event);
-		PCollection<BeamRecord> rec_4 = query1.apply(BeamSql.queryMulti(
-				"SELECT a.FiscalYear,a.FiscalQuarter, a.BrandChapter,'GM' as Market,'Composite' as ConsumerBehavior, \r\n"
-						+ "a.Channel, 'Composite' as SubChannel, a.Campaign,a.ReportedSpend, a.ModeledSpend,  a.Summed, a.maxed, a.least, a.Dummy, b.EventName, b.EventKey,b.EventComponents from \r\n"
-						+ "rec_3 as a left join Event as b on a.EventKey = b.EventComponents where a.SubChannel <> 'Do not use' or a.EventKey <> 'Do no use' "));
+		//composite_1
+		PCollectionTuple query_changed = PCollectionTuple.of(new TupleTag<BeamRecord>("Event"), Event)
+				.and(new TupleTag<BeamRecord>("rec_3"), rec_3);
+		PCollection<BeamRecord> rec_3_1 = query_changed.apply(BeamSql.queryMulti(
+				"SELECT b.SubChannel,a.EventName,a.EventKey,a.EventComponents from Event as a left join rec_3 as b  \r\n"
+				+ "on a.EventComponents  = b.EventKey where b.SubChannel <> 'Do no use'" ));
+		
+		//composite_2
+		PCollection<BeamRecord> rec_3_2 = rec_3_1.apply(BeamSql.query(
+				"SELECT EventKey,COUNT(DISTINCT SubChannel) as count_channel from PCOLLECTION GROUP BY EventKey" ));
+		
+		//composite_3
+		PCollectionTuple composite_3 = PCollectionTuple.of(new TupleTag<BeamRecord>("Event"), Event)
+				.and(new TupleTag<BeamRecord>("rec_3_2"), rec_3_2);
+		PCollection<BeamRecord> rec_3_3 = composite_3.apply(BeamSql.queryMulti(
+				"SELECT a.EventType ,a.EventKey, a.EventName, a.EventComponents, CAST(b.count_channel as INTEGER) as count_channel from Event as a left join rec_3_2 as b  \r\n"
+				+ "on a.EventKey= b.EventKey"));
+		
+
+		
+//		// Query_4    
+			PCollectionTuple query1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
+				.and(new TupleTag<BeamRecord>("rec_3_3"), rec_3_3);
+		PCollection<BeamRecord> rec_4_0 = query1.apply(BeamSql.queryMulti(
+				"SELECT a.FiscalYear,a.FiscalQuarter, a.BrandChapter,a.Market,'Composite' as ConsumerBehavior, \r\n"
+						+ "a.Channel,a.SubChannel, \r\n"  
+						+ " a.Campaign,a.ReportedSpend, a.ModeledSpend,  a.Summed, a.maxed, a.least, a.Dummy, b.EventName, b.EventKey,b.EventComponents,rec_3_3UDF(b.count_channel) as count_channel from \r\n"
+						+ "rec_3 as a left join rec_3_3 as b on a.EventKey = b.EventComponents where a.SubChannel <> 'Do not use' or a.EventKey <> 'Do no use' ").withUdf("rec_3_3UDF", rec_3_3UDF.class));
+		
+		PCollection<BeamRecord> rec_4 = rec_4_0
+				.apply(BeamSql.query("SELECT FiscalYear,FiscalQuarter, BrandChapter,Market,ConsumerBehavior,Channel,rec4compUDF(count_channel,SubChannel) as SubChannel, \r\n"
+						+" Campaign,ReportedSpend, ModeledSpend,Summed, maxed,least, Dummy, EventName, EventKey,EventComponents,count_channel \r\n"
+						+ "from PCOLLECTION").withUdf("rec4compUDF", rec4compUDF.class));
+		
+		//		
+		PCollection<BeamRecord> rec_4_1 = rec_4
+				.apply(BeamSql.query("SELECT *,rec4UDF(Channel,Market) as Market2 from PCOLLECTION")
+.withUdf("rec4UDF", rec4UDF.class));
 
 		// Query_5 Comp Spend
-		PCollection<BeamRecord> rec_5 = rec_4
-				.apply(BeamSql.query("SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, \r\n"
+		PCollection<BeamRecord> rec_5 = rec_4_1
+				.apply(BeamSql.query("SELECT FiscalYear, FiscalQuarter, BrandChapter, Market2 as Market, \r\n"
 						+ "ConsumerBehavior, Channel, SubChannel, Campaign, sum(ReportedSpend)  ReportedSpend, sum(ModeledSpend) ModeledSpend, Summed, Dummy,  maxed, least,EventName, EventKey from PCOLLECTION group by FiscalYear, \r\n"
-						+ "FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, maxed, least, Dummy, Summed"));
+						+ "FiscalQuarter, BrandChapter, Market2, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, maxed, least, Dummy, Summed"));
 
-		// Query_6 Spend combined
+		
+	// Query_6 Spend combined
 		PCollectionTuple query3 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
 				.and(new TupleTag<BeamRecord>("rec_5"), rec_5);
 		PCollection<BeamRecord> rec_6 = query3.apply(BeamSql.queryMulti(
@@ -2806,7 +2883,7 @@ public class StarterPipeline {
 						.set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_APPEND));    */
+						.withWriteDisposition(WriteDisposition.WRITE_APPEND));   
 
 		
 		//WRITE_TRUNCATE
