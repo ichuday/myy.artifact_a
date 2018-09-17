@@ -140,6 +140,19 @@
 			<artifactId>google-cloud-dataflow-java-sdk-all</artifactId>
 			<version>2.3.0</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.appengine/appengine -->
+		<dependency>
+			<groupId>com.google.appengine</groupId>
+			<artifactId>appengine</artifactId>
+			<version>1.9.64</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.google.http-client</groupId>
 			<artifactId>google-http-client</artifactId>
@@ -198,14 +211,14 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
-			<version>3.17</version>
+			<version>3.13</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/charset/charset -->
 		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>3.9</version>
+			<version>3.13</version>
 		</dependency>
 
 		<dependency>

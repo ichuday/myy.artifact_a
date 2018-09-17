@@ -18,6 +18,13 @@ public class ClassWeeklyDueto implements Serializable {
 	public String Country;
 	public String Iteration;
 	public String SourceBDA;
+	public Double GRPValue;
+	public Double getGRPValue() {
+		return GRPValue;
+	}
+	public void setGRPValue(Double gRPValue) {
+		GRPValue = gRPValue;
+	}
 	public String getOutlet() {
 		return Outlet;
 	}
