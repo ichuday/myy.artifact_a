@@ -10,9 +10,9 @@ public class ClassShip implements Serializable {
 	public String Catlib;
 	public String Channel;
 	public String Period;
-	public double ChannelVolume;
-	public double AllOutletVolume;
-	public double ProjectionFactor;
+	public Double ChannelVolume;
+	public Double AllOutletVolume;
+	public Double ProjectionFactor;
 	public String getBrand() {
 		return Brand;
 	}
@@ -43,22 +43,22 @@ public class ClassShip implements Serializable {
 	public void setPeriod(String period) {
 		Period = period;
 	}
-	public double getChannelVolume() {
+	public Double getChannelVolume() {
 		return ChannelVolume;
 	}
-	public void setChannelVolume(double channelVolume) {
+	public void setChannelVolume(Double channelVolume) {
 		ChannelVolume = channelVolume;
 	}
-	public double getAllOutletVolume() {
+	public Double getAllOutletVolume() {
 		return AllOutletVolume;
 	}
-	public void setAllOutletVolume(double allOutletVolume) {
+	public void setAllOutletVolume(Double allOutletVolume) {
 		AllOutletVolume = allOutletVolume;
 	}
-	public double getProjectionFactor() {
+	public Double getProjectionFactor() {
 		return ProjectionFactor;
 	}
-	public void setProjectionFactor(double projectionFactor) {
+	public void setProjectionFactor(Double projectionFactor) {
 		ProjectionFactor = projectionFactor;
 	}
 
