@@ -1,8 +1,5 @@
 package com.pojo;
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
-import org.apache.commons.math3.distribution.GammaDistribution;
 
 public class CampaignGamma implements Serializable{
 	

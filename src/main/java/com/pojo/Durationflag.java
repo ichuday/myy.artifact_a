@@ -1,7 +1,6 @@
 package com.pojo;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class Durationflag implements Serializable{
 	private static final long serialVersionUID = 1L;

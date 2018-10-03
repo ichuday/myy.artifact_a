@@ -1,8 +1,19 @@
 package my.proj;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineWorkerPoolOptions;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStreamWriter;
+import com.google.api.gax.paging.Page;
+import java.io.Reader;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,6 +22,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.lang.Integer;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -21,7 +33,6 @@ import java.lang.Double;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
@@ -51,11 +62,13 @@ import org.apache.beam.sdk.values.PCollectionTuple;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.apache.beam.sdk.values.TupleTag;
 import org.apache.beam.sdk.values.TypeDescriptor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.math3.distribution.GammaDistribution;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -64,10 +77,16 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.TableSchema;
+import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.appengine.tools.cloudstorage.GcsService;
+import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
+import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.WriteChannel;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.google.cloud.storage.contrib.nio.CloudStorageFileSystem;
 import com.google.common.collect.ImmutableList;
@@ -87,11 +106,14 @@ import com.pojo.ClassWeekend;
 import com.pojo.ClassEventExec;
 import com.pojo.ClassHispanic;
 import com.pojo.Hispanic6temp;
+import com.pojo.Composite_events;
 
 public class StarterPipeline {
 	static String filename_WeeklyD;
 	static ArrayList<String> al = new ArrayList<String>();
-
+	static ArrayList<String> als = new ArrayList<String>();
+	
+//for adding 7,14,21,28 days
 	public static class AddS implements BeamSqlUdf {
 		private static final long serialVersionUID = 1L;
 
@@ -139,146 +161,6 @@ public class StarterPipeline {
 		}
 	}
 
-	public static class AddF implements BeamSqlUdf {
-		private static final long serialVersionUID = 1L;
-
-		public static String eval(String input) throws ParseException {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmdd");
-			System.out.println("dateformat : " + dateFormat);
-
-			// String strdate = Long.toString(input);
-
-			Date date1 = dateFormat.parse(input);
-
-			Calendar c = Calendar.getInstance();
-
-			c.setTime(date1);
-
-			c.add(Calendar.DATE, 14);
-
-			String f = c.getTime().toString();
-
-			System.out.println(f);
-			int year = c.get(Calendar.YEAR);
-			int month = c.get(Calendar.MONTH);
-			int a = month + 1;
-			String t = null;
-			if (a < 10) {
-				t = "0" + Integer.toString(a);
-
-			} else {
-				t = Integer.toString(a);
-			}
-			int day = c.get(Calendar.DAY_OF_MONTH);
-			String r = null;
-			if (day < 10) {
-				r = "0" + Integer.toString(day);
-
-			} else {
-				r = Integer.toString(day);
-			}
-			System.out.println(year);
-			System.out.println(t);
-			System.out.println(r);
-			String ddate = Integer.toString(year) + t + r;
-			return ddate;
-
-		}
-	}
-
-	public static class AddT implements BeamSqlUdf {
-		private static final long serialVersionUID = 1L;
-
-		public static String eval(String input) throws ParseException {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-			System.out.println("dateformat : " + dateFormat);
-
-			// String strdate = Long.toString(input);
-
-			Date date1 = dateFormat.parse(input);
-
-			Calendar c = Calendar.getInstance();
-
-			c.setTime(date1);
-
-			c.add(Calendar.DATE, 21);
-
-			String f = c.getTime().toString();
-
-			System.out.println(f);
-			int year = c.get(Calendar.YEAR);
-			int month = c.get(Calendar.MONTH);
-			int a = month + 1;
-			String t = null;
-			if (a < 10) {
-				t = "0" + Integer.toString(a);
-
-			} else {
-				t = Integer.toString(a);
-			}
-			int day = c.get(Calendar.DAY_OF_MONTH);
-			String r = null;
-			if (day < 10) {
-				r = "0" + Integer.toString(day);
-
-			} else {
-				r = Integer.toString(day);
-			}
-			System.out.println(year);
-			System.out.println(t);
-			System.out.println(r);
-			String ddate = Integer.toString(year) + t + r;
-			return ddate;
-
-		}
-	}
-
-	public static class AddW implements BeamSqlUdf {
-		private static final long serialVersionUID = 1L;
-
-		public static String eval(String input) throws ParseException {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-			System.out.println("dateformat : " + dateFormat);
-
-			// String strdate = Long.toString(input);
-
-			Date date1 = dateFormat.parse(input);
-
-			Calendar c = Calendar.getInstance();
-
-			c.setTime(date1);
-
-			c.add(Calendar.DATE, 28);
-
-			String f = c.getTime().toString();
-
-			System.out.println(f);
-			int year = c.get(Calendar.YEAR);
-			int month = c.get(Calendar.MONTH);
-			int a = month + 1;
-			String t = null;
-			if (a < 10) {
-				t = "0" + Integer.toString(a);
-
-			} else {
-				t = Integer.toString(a);
-			}
-			int day = c.get(Calendar.DAY_OF_MONTH);
-			String r = null;
-			if (day < 10) {
-				r = "0" + Integer.toString(day);
-
-			} else {
-				r = Integer.toString(day);
-			}
-			System.out.println(year);
-			System.out.println(t);
-			System.out.println(r);
-			String ddate = Integer.toString(year) + t + r;
-			return ddate;
-
-		}
-	}
 
 	public static class durationUDF implements BeamSqlUdf {
 		private static final long serialVersionUID = 1L;
@@ -429,7 +311,6 @@ public class StarterPipeline {
 
 	// function to convert Event xls to csv
 	// for Events
-	@SuppressWarnings("deprecation")
 	public static void printBlob(com.google.cloud.storage.Storage storage, String bucketName, String blobPath)
 			throws IOException, InvalidFormatException, EncryptedDocumentException,
 			org.apache.poi.openxml4j.exceptions.InvalidFormatException {
@@ -450,7 +331,7 @@ public class StarterPipeline {
 				StringBuffer data = new StringBuffer();
 				for (int i = 0; i < wb.getNumberOfSheets(); i++) {
 					String fName = wb.getSheetAt(i).getSheetName();
-					HSSFSheet sheet = (HSSFSheet) wb.getSheetAt(i);
+					Sheet sheet = wb.getSheetAt(i);
 					Iterator<org.apache.poi.ss.usermodel.Row> rowIterator = sheet.iterator();
 					data.delete(0, data.length());
 					while (rowIterator.hasNext()) {
@@ -475,7 +356,7 @@ public class StarterPipeline {
 								data.append(cell.getBooleanCellValue() + ",");
 								break;
 							case Cell.CELL_TYPE_BLANK:
-								data.append("" + ",");
+								data.append(" " + ",");
 								break;
 							default:
 								data.append(cell + ",");
@@ -492,14 +373,6 @@ public class StarterPipeline {
 					try (WriteChannel writer = storage.writer(blobInfo)) {
 						writer.write(ByteBuffer.wrap(content, 0, content.length));
 					}
-
-//				String filename = "final_input/Events/" + fName;
-//				BlobId blobId = BlobId.of("cloroxtegadeff", filename);
-//				byte[] content = data.toString().getBytes(UTF_8);
-//				BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
-//				try (WriteChannel writer = storage.writer(blobInfo)) {
-//					writer.write(ByteBuffer.wrap(content, 0, content.length));
-//				}
 				}
 				cont++;
 			}
@@ -525,66 +398,66 @@ public class StarterPipeline {
 				// InputStream inputStream = Channels.newInputStream(reader);
 				BufferedInputStream bis = new BufferedInputStream(Channels.newInputStream(reader));
 				// Workbook wb = WorkbookFactory.create(bis);
-				@SuppressWarnings("resource")
-				XSSFWorkbook wb = new XSSFWorkbook(bis);
+				Workbook wb = WorkbookFactory.create(bis);
+			//	XSSFWorkbook wb = new XSSFWorkbook(bis);
 				StringBuffer data = new StringBuffer();
 				for (int i = 0; i < wb.getNumberOfSheets(); i++) {
-					String fName = wb.getSheetAt(i).getSheetName();
-					XSSFSheet sheet = (XSSFSheet) wb.getSheetAt(i);
-					Iterator<org.apache.poi.ss.usermodel.Row> rowIterator = sheet.iterator();
+			//		String fName = wb.getSheetAt(i).getSheetName();
+					Sheet sheet = wb.getSheetAt(i);
+			         Row row;
+			         Cell cell;
+			         // Iterate through each rows from first sheet
+			         Iterator<Row> rowIterator = sheet.iterator();
 
-					data.delete(0, data.length());
-					while (rowIterator.hasNext()) {
-						// Get Each Row
-						org.apache.poi.ss.usermodel.Row row = rowIterator.next();
+			         while (rowIterator.hasNext()) {
+			             row = rowIterator.next();
 
-						// Iterating through Each column of Each Row
-						Iterator<Cell> cellIterator = row.cellIterator();
+			             // For each row, iterate through each columns
+			             Iterator<Cell> cellIterator = row.cellIterator();
+			             while (cellIterator.hasNext()) {
 
-						while (cellIterator.hasNext()) {
-							Cell cell = cellIterator.next();
+			                 cell = cellIterator.next();
 
-							// Checking the cell format
-							if (cell.getCellType() == cell.CELL_TYPE_FORMULA) {
-								// Checking the cell format
-								switch (cell.getCachedFormulaResultType()) {
-								case Cell.CELL_TYPE_NUMERIC:
-									data.append(cell.getNumericCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_STRING:
-									data.append(cell.getStringCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_BOOLEAN:
-									data.append(cell.getBooleanCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_BLANK:
-									data.append(" " + ",");
-									break;
-								default:
-									data.append(cell + ",");
+								if (cell.getCellType() == cell.CELL_TYPE_FORMULA) {
+									// Checking the cell format
+									switch (cell.getCachedFormulaResultType()) {
+									case Cell.CELL_TYPE_NUMERIC:
+										data.append(cell.getNumericCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_STRING:
+										data.append(cell.getStringCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_BOOLEAN:
+										data.append(cell.getBooleanCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_BLANK:
+										data.append(" " + ",");
+										break;
+									default:
+										data.append(cell + ",");
+									}
+								} else {
+									switch (cell.getCellType()) {
+									case Cell.CELL_TYPE_NUMERIC:
+										data.append(cell.getNumericCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_STRING:
+										data.append(cell.getStringCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_BOOLEAN:
+										data.append(cell.getBooleanCellValue() + ",");
+										break;
+									case Cell.CELL_TYPE_BLANK:
+										data.append(" " + ",");
+										break;
+									default:
+										data.append(cell + ",");
+									}
 								}
-							} else {
-								switch (cell.getCellType()) {
-								case Cell.CELL_TYPE_NUMERIC:
-									data.append(cell.getNumericCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_STRING:
-									data.append(cell.getStringCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_BOOLEAN:
-									data.append(cell.getBooleanCellValue() + ",");
-									break;
-								case Cell.CELL_TYPE_BLANK:
-									data.append(" " + ",");
-									break;
-								default:
-									data.append(cell + ",");
-								}
-							}
-						}
-						data.deleteCharAt(data.length() - 1);
-						data.append('\n');
-					}
+			                 
+			             }
+			             data.append("\n");
+			         }
 
 					String filename = "CSVs/" + blobPath + blobPath.replace("/", "") + "_" + cont;
 					BlobId blobId = BlobId.of("ad_efficiency_input", filename);
@@ -593,14 +466,6 @@ public class StarterPipeline {
 					try (WriteChannel writer = storage.writer(blobInfo)) {
 						writer.write(ByteBuffer.wrap(content, 0, content.length));
 					}
-
-//					String filename = "final_input/Events/" + fName;
-//					BlobId blobId = BlobId.of("cloroxtegadeff", filename);
-//					byte[] content = data.toString().getBytes(UTF_8);
-//					BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
-//					try (WriteChannel writer = storage.writer(blobInfo)) {
-//						writer.write(ByteBuffer.wrap(content, 0, content.length));
-//					}
 				}
 				cont++;
 			}
@@ -608,7 +473,6 @@ public class StarterPipeline {
 	}
 
 	// for Brand_Media_Hierarchy
-	@SuppressWarnings("static-access")
 	public static void printBlob2(com.google.cloud.storage.Storage storage, String bucketName, String blobPath)
 			throws IOException, InvalidFormatException, EncryptedDocumentException,
 			org.apache.poi.openxml4j.exceptions.InvalidFormatException {
@@ -625,12 +489,12 @@ public class StarterPipeline {
 			try (ReadChannel reader = ((com.google.cloud.storage.Storage) storage).reader(bucketName, blobPath + j)) {
 				// InputStream inputStream = Channels.newInputStream(reader);
 				BufferedInputStream bis = new BufferedInputStream(Channels.newInputStream(reader));
-				// Workbook wb = WorkbookFactory.create(bis);
-				@SuppressWarnings("resource")
-				XSSFWorkbook wb = new XSSFWorkbook(bis);
+				Workbook wb = WorkbookFactory.create(bis);
+			//	XSSFWorkbook wb = new XSSFWorkbook(bis);
 				StringBuffer data = new StringBuffer();
-				String fName = wb.getSheetAt(0).getSheetName();
-				XSSFSheet sheet = (XSSFSheet) wb.getSheetAt(0);
+			//	String fName = wb.getSheetAt(0).getSheetName();
+				Sheet sheet = wb.getSheetAt(0);
+			// remove first three rows
 				sheet.removeRow(sheet.getRow(0));
 				sheet.removeRow(sheet.getRow(1));
 				sheet.removeRow(sheet.getRow(2));
@@ -679,21 +543,52 @@ public class StarterPipeline {
 				try (WriteChannel writer = storage.writer(blobInfo)) {
 					writer.write(ByteBuffer.wrap(content, 0, content.length));
 				}
-
-//						String filename = "final_input/Events/" + fName;
-//						BlobId blobId = BlobId.of("cloroxtegadeff", filename);
-//						byte[] content = data.toString().getBytes(UTF_8);
-//						BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
-//						try (WriteChannel writer = storage.writer(blobInfo)) {
-//							writer.write(ByteBuffer.wrap(content, 0, content.length));
-//						}
 			}
 			cont++;
 		}
 	}
+	
+	public static void printBlob3(com.google.cloud.storage.Storage storage, String bucketName, String blobPath)
+			throws IOException, InvalidFormatException, EncryptedDocumentException,
+			org.apache.poi.openxml4j.exceptions.InvalidFormatException {
 
+		ArrayList<String> filenames = new ArrayList<String>();
+		FileSystem fs = CloudStorageFileSystem.forBucket(bucketName);
+		for (Path path : Files.newDirectoryStream(fs.getPath(blobPath))) {
+			System.out.println(path.toString().substring(13));
+			filenames.add(path.toString().substring(13));
+		}
+
+		int cont = 0;
+		for (String j : filenames) {
+			try (ReadChannel reader = ((com.google.cloud.storage.Storage) storage).reader(bucketName, blobPath + j)) {
+				// InputStream inputStream = Channels.newInputStream(reader);
+				BufferedInputStream bis = new BufferedInputStream(Channels.newInputStream(reader));
+				BufferedReader br = new BufferedReader(new InputStreamReader(bis, "UTF-8"));
+				String line = null;
+                @SuppressWarnings("unused")
+				int i=0;
+                String[] x = j.split("_");
+                StringBuffer data = new StringBuffer();
+                for ( line = br.readLine(); line != null; line = br.readLine(),i++)
+                {               
+                    String addedColumn = String.valueOf(x[1]);
+                    data.append(line+","+addedColumn+"\n");
+                }
+					String filename = "CSVs/" + blobPath + j.replace(".csv", "") + "_" + cont;
+					BlobId blobId = BlobId.of("ad_efficiency_input", filename);
+					byte[] content = data.toString().getBytes(UTF_8);
+					BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType("text/plain").build();
+					try (WriteChannel writer = storage.writer(blobInfo)) {
+						writer.write(ByteBuffer.wrap(content, 0, content.length));
+					}
+				}
+				cont++;
+			}
+		}
+	
+	
 	// main method
-	@SuppressWarnings("deprecation")
 	public static void main(String[] args) throws IOException, EncryptedDocumentException,
 			org.apache.poi.openxml4j.exceptions.InvalidFormatException, InterruptedException {
 		SimpleDateFormat date1 = new SimpleDateFormat("MM/dd/yy");
@@ -710,8 +605,19 @@ public class StarterPipeline {
 		DataflowRunner.fromOptions(options);
 		Pipeline p = Pipeline.create(options);
 
+//function to delete CSVs folder
+		com.google.cloud.storage.Storage storage = StorageOptions.getDefaultInstance().getService();		
+		Blob b = storage.get("ad_efficiency_input", "CSVs/");
+		if(b != null) {
+		    Page<Blob> blobPage = storage.list("ad_efficiency_input", Storage.BlobListOption.prefix("CSVs/"));
+		    List<BlobId> blobIdList = new LinkedList<>();
+		    for (Blob blob : blobPage.iterateAll()) {
+		        blobIdList.add(blob.getBlobId());
+		    }
+		    storage.delete(blobIdList);
+		}
+		
 		// Function call to convert excel to csv
-		com.google.cloud.storage.Storage storage = StorageOptions.getDefaultInstance().getService();
 		String bucketName = "ad_efficiency_input";
 		String blobPath = "Event_Setup/";
 
@@ -720,7 +626,7 @@ public class StarterPipeline {
 		} catch (InvalidFormatException e) {
 			e.printStackTrace();
 		}
-
+		
 		String blobPath1 = "Spend/";
 
 		try {
@@ -741,6 +647,14 @@ public class StarterPipeline {
 
 		try {
 			printBlob2(storage, bucketName, blobPath2);
+		} catch (InvalidFormatException e) {
+			e.printStackTrace();
+		}
+		
+		String blobPath3 = "Weekly_Dueto/";
+
+		try {
+			printBlob3(storage, bucketName, blobPath3);
 		} catch (InvalidFormatException e) {
 			e.printStackTrace();
 		}
@@ -785,6 +699,8 @@ public class StarterPipeline {
 		PCollection<BeamRecord> Wknd = apps15.apply(Window.<BeamRecord>into(new GlobalWindows())
 				.triggering(Repeatedly.forever(AfterWatermark.pastEndOfWindow()))
 				.withAllowedLateness(org.joda.time.Duration.standardMinutes(1)).discardingFiredPanes());
+		
+		
 
 		// implement Financial.csv
 		PCollection<String> financeobj = p
@@ -1035,21 +951,9 @@ public class StarterPipeline {
 						ce.setConsumerBehavior(strArr[6].trim());
 						ce.setChannel(strArr[7].trim());
 						ce.setSubChannel(strArr[8].trim());
-						if(strArr[9].trim().isEmpty()) {
-							ce.setCampaign(" ");
-						}else {
-							ce.setCampaign(strArr[9].trim());
-						}
-						if(strArr[10].trim().isEmpty()) {
-							ce.setEventName(" ");
-						}else {
-							ce.setEventName(strArr[10].trim());
-						}
-						if(strArr[11].trim().isEmpty()) {
-							ce.setEventKey(" ");
-						}else {
-							ce.setEventKey(strArr[11].trim());
-						}
+						ce.setCampaign(strArr[9].trim());
+						ce.setEventName(strArr[10].trim());
+						ce.setEventKey(strArr[11].trim());
 						if (strArr[12].trim().isEmpty()) {
 							ce.setReportedSpend(0.00);
 						} else {
@@ -1206,12 +1110,12 @@ public class StarterPipeline {
 				.withAllowedLateness(org.joda.time.Duration.standardMinutes(1)).discardingFiredPanes());
 
 		PCollection<BeamRecord> Event = Event1.apply(
-				BeamSql.query("SELECT DISTINCT EventType, EventKey, EventName, EventComponents from PCOLLECTION"));
-
+				BeamSql.query("SELECT DISTINCT EventType, EventKey, EventName, EventComponents from PCOLLECTION"));  
+		
 
 //				PCollection<Composite_events> Composite_events = Event.apply(ParDo.of(new DoFn<BeamRecord, Composite_events>() {
 //					private static final long serialVersionUID = 1L;
-		//
+//		
 //					@ProcessElement
 //					public void processElement(ProcessContext c) throws ParseException {
 //						BeamRecord record = c.element();
@@ -1242,35 +1146,38 @@ public class StarterPipeline {
 //								.set("Event_Components", elem.EvntComponents)))
 //						.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 //								.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-//								.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));				
+//								.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));
+				
+
+		
 ////				// WeeklyDuetoFile
-
-		PCollection<String> weekly_read = p.apply(TextIO.read().from("gs://ad_efficiency_input/Weekly_Dueto/Grocery*"));
-		PCollection<FileIO.ReadableFile> weeklyB = p
-				.apply(FileIO.match().filepattern("gs://ad_efficiency_input/Weekly_Dueto/Grocery*")) // reading
-																										// all
-																										// the
-																										// files
-																										// with
-																										// specific
-																										// nomenclature
-				.apply(FileIO.readMatches());
-		PCollection<String> weeklyB1 = weeklyB.apply(ParDo.of(new DoFn<FileIO.ReadableFile, String>() {
-			private static final long serialVersionUID = 1L;
-
-			@ProcessElement
-			public void process(ProcessContext c) {
-				FileIO.ReadableFile f = c.element();
-				filename_WeeklyD = f.getMetadata().resourceId().toString();
-				al.add(filename_WeeklyD);
-			}
-		}));
+		//Grocery_FY18Q4_G2_0
+		PCollection<String> weekly_read = p.apply(TextIO.read().from("gs://ad_efficiency_input/CSVs/Weekly_Dueto/Grocery*"));
+//		PCollection<FileIO.ReadableFile> weeklyB = p
+//				.apply(FileIO.match().filepattern("gs://ad_efficiency_input/Weekly_Dueto/Grocery*")) // reading
+//																										// all
+//																										// the
+//																										// files
+//																										// with
+//																										// specific
+//																										// nomenclature
+//				.apply(FileIO.readMatches());
+//		PCollection<String> weeklyB1 = weeklyB.apply(ParDo.of(new DoFn<FileIO.ReadableFile, String>() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@ProcessElement
+//			public void process(ProcessContext c) {
+//				FileIO.ReadableFile f = c.element();
+//				filename_WeeklyD = f.getMetadata().resourceId().toString();
+//				al.add(filename_WeeklyD);
+//			}
+//		}));
 
 		// Writing input files to Archive folder
 		weekly_read
 				.apply(TextIO.write().to("gs://cloroxtegadeff/final_input/Weekly_dueto_Archive/Archived_weeklyDueto"));
 
-		final PCollectionView<String> weeklyC = weeklyB1.apply(View.<String>asSingleton());
+//		final PCollectionView<String> weeklyC = weeklyB1.apply(View.<String>asSingleton());
 
 		PCollection<ClassWeeklyDueto> pojos = weekly_read.apply(ParDo.of(new DoFn<String, ClassWeeklyDueto>() { // converting
 																												// String
@@ -1285,11 +1192,11 @@ public class StarterPipeline {
 				if (header.contains("Prodkey")) {
 					System.out.println("Header");
 				} else {
-					for (int i = 0; i < al.size(); i++) {
-						String namesList = al.get(i).toString();
-						String[] x = namesList.split("_");
-						String x1 = x[7];
-						String x2 = x[5];
+//					for (int i = 0; i < al.size(); i++) {
+//						String namesList = al.get(i).toString();
+//						String[] x = namesList.split("_");
+					//	String x1 = x[7];
+					//	String x2 = x[4];
 						ClassWeeklyDueto wd = new ClassWeeklyDueto();
 						wd.setOutlet(strArr[0].trim());
 						wd.setCatlib(strArr[1].trim());
@@ -1299,25 +1206,28 @@ public class StarterPipeline {
 						wd.setSalesComponent(strArr[5].trim());
 						wd.setDueto_value(Double.valueOf(strArr[6].trim()));
 						wd.setPrimaryCausalKey(strArr[7].trim());
-						if (strArr[8].trim().isEmpty()) {
+						if (strArr[9].trim().isEmpty()) {
 							wd.setCausal_value(0.00);
 						} else {
-							wd.setCausal_value(Double.valueOf(strArr[8].trim()));
+							wd.setCausal_value(Double.valueOf(strArr[9].trim()));
 						}
-						if (strArr[9].trim().isEmpty()) {
+						if (strArr[8].trim().isEmpty()) {
 							wd.setGRPValue(0.00);
 						} else {
-							wd.setGRPValue(Double.valueOf(strArr[9].trim()));
+							wd.setGRPValue(Double.valueOf(strArr[8].trim()));
 						}
 						// wd.setCountry(strArr[9].trim());
-						wd.setIteration(x1);
-						wd.setSourceBDA(x2);
+						wd.setIteration("ITERATION");
+						wd.setSourceBDA(strArr[10].trim());
 						wd.setCountry("US");
 						c.output(wd);
 					}
 				}
-			}
-		}).withSideInputs(weeklyC));
+//			}
+		}));
+		
+		//.withSideInputs(weeklyC)
+	
 
 		List<String> fieldNames = Arrays.asList("Outlet", "Catlib", "ProdKey", "Geogkey", "Week", "SalesComponent",
 				"Dueto_value", "PrimaryCausalKey", "Causal_value", "Iteration", "SourceBDA", "Country");
@@ -1344,10 +1254,8 @@ public class StarterPipeline {
 				.withAllowedLateness(org.joda.time.Duration.standardMinutes(1)).discardingFiredPanes());
 
 		PCollection<BeamRecord> weekD = weekD1.apply(BeamSql.query("SELECT DISTINCT * FROM PCOLLECTION"));
-		
 
 		
-				
 //				// implement EVNTEXEC.csv
 		PCollection<String> eve_read = p
 				.apply(TextIO.read().from("gs://ad_efficiency_input/CSVs/Events_csv/EVNTEXEC*"));
@@ -1594,8 +1502,7 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_3 = query0.apply(BeamSql.queryMulti(
 				"SELECT a.FiscalYear, a.FiscalQuarter, a.BrandChapter, a.Market, a.ConsumerBehavior, a.Channel, a.SubChannel, \r\n"
 						+ " a.Campaign, a.EventName, a.EventKey, a.ReportedSpend, a.ModeledSpend, a.Summed, a.Dummy, b.maxed, b.least from rec_1 a INNER JOIN rec_2 b on a.Dummy = b.Dummy where a.Summed > least and a.Summed <= maxed "));
-
-		
+						
 		// composite_1
 		PCollectionTuple query_changed = PCollectionTuple.of(new TupleTag<BeamRecord>("Event"), Event)
 				.and(new TupleTag<BeamRecord>("rec_3"), rec_3);
@@ -1615,8 +1522,6 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_3_3 = composite_3.apply(BeamSql.queryMulti(
 				"SELECT a.EventType ,a.EventKey, a.EventName, a.EventComponents, CAST(b.count_channel as INTEGER) as count_channel from Event as a left join rec_3_2 as b  \r\n"
 						+ "on a.EventKey= b.EventKey"));
-		
-
 
 //		// Query_4    
 		PCollectionTuple query1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
@@ -1627,7 +1532,7 @@ public class StarterPipeline {
 						+ " a.Campaign,a.ReportedSpend, a.ModeledSpend,  a.Summed, a.maxed, a.least, a.Dummy, b.EventName, b.EventKey,b.EventComponents,rec_3_3UDF(b.count_channel) as count_channel from \r\n"
 						+ "rec_3 as a inner join rec_3_3 as b on a.EventKey = b.EventComponents where a.SubChannel <> 'Do not use' or a.EventKey <> 'Do no use' ")
 				.withUdf("rec_3_3UDF", rec_3_3UDF.class));
-
+		
 		PCollection<BeamRecord> rec_4 = rec_4_0.apply(BeamSql.query(
 				"SELECT FiscalYear,FiscalQuarter, BrandChapter,Market,Channel,rec4compUDF(count_channel,SubChannel) as SubChannel,rec4compUDF(count_channel,ConsumerBehavior) as ConsumerBehavior, \r\n"
 						+ " Campaign,ReportedSpend, ModeledSpend,Summed, maxed,least, Dummy, EventName, EventKey,EventComponents,count_channel \r\n"
@@ -1644,8 +1549,60 @@ public class StarterPipeline {
 						+ "ConsumerBehavior, Channel, SubChannel, Campaign, sum(ReportedSpend)  ReportedSpend, sum(ModeledSpend) ModeledSpend, Summed, Dummy,  maxed, least,EventName, EventKey from PCOLLECTION group by FiscalYear, \r\n"
 						+ "FiscalQuarter, BrandChapter, Market2, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, maxed, least, Dummy, Summed"));
 
+		//added on 26 sep 18		
+//		Composite_vehicle_1		
+		PCollectionTuple Composite_Vehicle = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
+				.and(new TupleTag<BeamRecord>("Event"), Event);
+		PCollection<BeamRecord> Composite_Vehicle_1 = Composite_Vehicle.apply(BeamSql.queryMulti(
+				"Select a.*,b.EventKey as Composite_key from rec_3 as a inner join Event \r\n"  
+			+	"as b \r\n"  
+			+	"on Trim(b.EventComponents) = Trim(a.EventKey)"));
+
+		PCollection<BeamRecord> Composite_count_Vehicle_0 = Composite_Vehicle_1.apply(BeamSql
+				.query("select DISTINCT EventKey,Composite_key \r\n"  
+				+	"from PCOLLECTION  \r\n" ));	
+
+//		
+		PCollection<BeamRecord> Composite_count_Vehicle = Composite_count_Vehicle_0.apply(BeamSql
+				.query("SELECT EventKey,COUNT(*) as Composite_key_count \r\n"  
+				+	"from PCOLLECTION group by EventKey \r\n"));	
+		
+//		Corrected_Vehicle_spend		
+		PCollectionTuple Corrected_Vehicle_spend_1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
+				.and(new TupleTag<BeamRecord>("Composite_count_Vehicle"), Composite_count_Vehicle);
+		PCollection<BeamRecord> Corrected_Vehicle_spend_0 = Corrected_Vehicle_spend_1.apply(BeamSql.queryMulti(
+				"Select a.*,b.Composite_key_count from rec_3 as a inner join Composite_count_Vehicle \r\n"  
+			+	"as b \r\n"  
+			+	"on Trim(b.EventKey) = Trim(a.EventKey)"));
+		
+		PCollection<BeamRecord> Corrected_Vehicle_spend_1a = Corrected_Vehicle_spend_0.apply(BeamSql
+				.query("Select *, (ReportedSpend/Composite_key_count) as updated_Reported,(ModeledSpend/Composite_key_count) as updated_Modeled from PCOLLECTION " ));
 		
 		
+		PCollectionTuple cvs_1 = PCollectionTuple.of(new TupleTag<BeamRecord>("Corrected_Vehicle_spend_1a"), Corrected_Vehicle_spend_1a)
+				.and(new TupleTag<BeamRecord>("rec_3_3"), rec_3_3);
+		PCollection<BeamRecord> cvs_2 = cvs_1.apply(BeamSql
+				.queryMulti("SELECT a.FiscalYear,a.FiscalQuarter, a.BrandChapter,a.Market,a.ConsumerBehavior, \r\n"
+						+ "a.Channel,a.SubChannel, \r\n"
+						+ " a.Campaign,a.updated_Reported, a.updated_Modeled,  a.Summed, a.maxed, a.least, a.Dummy, b.EventName, b.EventKey,b.EventComponents,rec_3_3UDF(b.count_channel) as count_channel from \r\n"
+						+ "Corrected_Vehicle_spend_1a as a inner join rec_3_3 as b on a.EventKey = b.EventComponents where a.SubChannel <> 'Do not use' or a.EventKey <> 'Do no use' ")
+				.withUdf("rec_3_3UDF", rec_3_3UDF.class));
+		
+		PCollection<BeamRecord> cvs_3 = cvs_2.apply(BeamSql.query(
+				"SELECT FiscalYear,FiscalQuarter, BrandChapter,Market,Channel,rec4compUDF(count_channel,SubChannel) as SubChannel,rec4compUDF(count_channel,ConsumerBehavior) as ConsumerBehavior, \r\n"
+						+ " Campaign,updated_Reported, updated_Modeled,Summed, maxed,least, Dummy, EventName, EventKey,EventComponents,count_channel \r\n"
+						+ "from PCOLLECTION")
+				.withUdf("rec4compUDF", rec4compUDF.class));
+
+		PCollection<BeamRecord> cvs_4 = cvs_3
+				.apply(BeamSql.query("SELECT *,rec4UDF(Channel,Market) as Market2 from PCOLLECTION").withUdf("rec4UDF",
+						rec4UDF.class));
+		
+		PCollection<BeamRecord> Corrected_Vehicle_spend = cvs_4
+				.apply(BeamSql.query("SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, \r\n"
+						+ "ConsumerBehavior, Channel, SubChannel, Campaign, sum(updated_Reported)  ReportedSpend, sum(updated_Modeled) ModeledSpend, Summed, Dummy,  maxed, least,EventName, EventKey from PCOLLECTION group by FiscalYear, \r\n"
+						+ "FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, maxed, least, Dummy, Summed"));
+				
 		// Query_6 Spend combined
 		PCollectionTuple query3 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
 				.and(new TupleTag<BeamRecord>("rec_5"), rec_5);
@@ -1653,12 +1610,14 @@ public class StarterPipeline {
 				"SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend \r\n"
 						+ " , ModeledSpend, Summed, Dummy, maxed, least from rec_3 UNION ALL SELECT FiscalYear, FiscalQuarter, BrandChapter, Market, \r\n"
 						+ " ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend, ModeledSpend, Summed, Dummy, maxed, least from rec_5"));
+
 		
 		PCollectionTuple query3_1_1 = PCollectionTuple.of(new TupleTag<BeamRecord>("Event"), Event)
 				.and(new TupleTag<BeamRecord>("rec_5"), rec_5);
 		PCollection<BeamRecord> rec_6_1_1 = query3_1_1.apply(BeamSql.queryMulti(
 				"SELECT a.EventName,a.EventKey,a.EventComponents,b.SubChannel \r\n"
 						+ " from Event as a left join rec_5 as b on a.EventKey=b.EventKey  where b.Subchannel='Composite'"));
+
 		
 		PCollectionTuple query3_1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_3"), rec_3)
 				.and(new TupleTag<BeamRecord>("rec_6_1_1"), rec_6_1_1);
@@ -1666,6 +1625,7 @@ public class StarterPipeline {
 				"SELECT a.FiscalYear, a.FiscalQuarter, a.BrandChapter, a.Market, a.ConsumerBehavior, a.Channel, a.SubChannel, a.Campaign, a.EventName, a.EventKey,b.EventComponents, ReportedSpend, \r\n"
 						+ " ModeledSpend, Summed, Dummy, maxed, least from rec_3 as a left join rec_6_1_1 as b on a.EventKey=b.EventComponents"));
 
+		
 		PCollection<BeamRecord> rec_6_2 = rec_6_1.apply(BeamSql.query(
 			"SELECT FiscalYear, FiscalQuarter,BrandChapter, Market, ConsumerBehavior, Channel, SubChannel, Campaign, EventName, EventKey, ReportedSpend \r\n"
 					+ " , ModeledSpend, Summed, Dummy, maxed, least from PCOLLECTION where EventComponents is null"));
@@ -1731,12 +1691,17 @@ public class StarterPipeline {
 		PCollection<BeamRecord> rec_8 = brandsH
 				.apply(BeamSql.query("SELECT DISTINCT Catlib, ProdKey from PCOLLECTION where ProdKey <> 'null'"));
 
+
+
 		// Query_9 Product_selected
 		PCollectionTuple query4 = PCollectionTuple.of(new TupleTag<BeamRecord>("weekD"), weekD)
 				.and(new TupleTag<BeamRecord>("rec_8"), rec_8);
 		PCollection<BeamRecord> rec_9 = query4.apply(BeamSql.queryMulti(
 				"SELECT a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Geogkey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey, (case when a.Causal_value is null then cast('0.00' as double) else a.Causal_value end) as  Causal_value  ,a.Country, a.Iteration ,b.ProdKey from weekD as a \r\n"
 						+ "INNER JOIN rec_8 as b on a.Catlib = b.Catlib and a.ProdKey = b.ProdKey"));
+
+
+		
 		
 		// Query_10 BrandMap
 		PCollectionTuple query5 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_9"), rec_9)
@@ -1767,8 +1732,7 @@ public class StarterPipeline {
 				"Select a.Outlet, a.Catlib, a.SourceBDA, a.ProdKey, a.Week, a.SalesComponent, a.Dueto_value, a.PrimaryCausalKey, \r\n"
 						+ "a.Iteration, a.Causal_value ,a.Country, a.Beneficiary, a.Actual_period,b.BrandChapter, b.SubChannel, b.EventName, b.Market,b.Channel as MediaChannel ,b.ConsumerBehavior from rec_11 as a INNER JOIN rec_12 as b \r\n"
 						+ "on a.SalesComponent = b.EventKey "));
-						
-
+		
 		
 		// HISPANIC queries starts
 		PCollection<BeamRecord> hispanic_temp = hispanic.apply(BeamSql.query(
@@ -2039,7 +2003,8 @@ public class StarterPipeline {
 				.query("select Outlet,Weekint,Limit1,eventidA,Dummy,mindate, \r\n"
 						+ "maxdate,Weekend,EveDate,duration_flag_UDF(grp) as grp,flag,contiflag FROM PCOLLECTION ")
 				.withUdf("duration_flag_UDF", duration_flag_UDF.class));
-					
+		
+		
 
 //		PCollection<Durationflag> Durationflag = Duration_Flag.apply(ParDo.of(new DoFn<BeamRecord, Durationflag>() {
 //		private static final long serialVersionUID = 1L;
@@ -2097,7 +2062,7 @@ public class StarterPipeline {
 		
 	
 //		// Query_14 Execution_start
-		PCollection<BeamRecord> rec_14 = hispanic_6.apply(BeamSql.query(
+		PCollection<BeamRecord> rec_14 = rec_13.apply(BeamSql.query(
 				"SELECT SourceBDA,Country,Market, SubChannel, EventName, SalesComponent as Event , Catlib, Beneficiary, \r\n"
 						+ "Outlet as Channel , Actual_period as Actual_Period, BrandChapter, MediaChannel ,ConsumerBehavior from PCOLLECTION \r\n"
 						+ " group by SubChannel, EventName, Market, SalesComponent, \r\n"
@@ -2137,9 +2102,7 @@ public class StarterPipeline {
 				BeamSql.query("SELECT SourceBDA,Country,Market, SubChannel, EventName, Event, Catlib, Beneficiary, \r\n"
 						+ "		Channel, Actual_Period, PeriodStartDate, PeriodEndDate, BrandChapter, MediaChannel, ConsumerBehavior,Causal_Value_New as GRPs from PCOLLECTION "));
 
-
-	
-		
+				
 		// Query_18 Execution_Copy_Start
 		PCollectionTuple query10 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_17"), rec_17)
 				.and(new TupleTag<BeamRecord>("hispanic_6"), hispanic_6);
@@ -2290,16 +2253,16 @@ public class StarterPipeline {
 		
 		// Query_24 Vehicle_Spend
 		PCollectionTuple query15 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_23"), rec_23)
-				.and(new TupleTag<BeamRecord>("rec_6"), rec_6);
+				.and(new TupleTag<BeamRecord>("Corrected_Vehicle_spend"), Corrected_Vehicle_spend);
 		PCollection<BeamRecord> rec_24_1 = query15.apply(BeamSql.queryMulti(
 				" Select a.SourceBDA,a.Country,a.Market, a.CatLib,a.SubChannel, a.Beneficiary, a.Channel,a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "          a.Duration, a.Continuity,a.MediaChannel ,a.ConsumerBehavior, b.BrandChapter, SUM(ReportedSpend) as ReportedSpend ,SUM(ModeledSpend) as ModeledSpend \r\n"
-						+ "    from rec_23 a INNER JOIN rec_6 b on \r\n" + " a.SubChannel = b.SubChannel and \r\n"
+						+ "    from rec_23 a INNER JOIN Corrected_Vehicle_spend b on \r\n" + " a.SubChannel = b.SubChannel and \r\n"
 						+ "  a.Market = b.Market and a.BrandChapter = b.BrandChapter \r\n"
 						+ "and a.MediaChannel = b.Channel where a.SubChannel='Composite' \r\n"
 						+ "    group by a.SourceBDA,a.Country,a.Market, a.CatLib,a.SubChannel, Beneficiary, a.Channel, Actual_Period, PeriodStartDate, PeriodEndDate, GRPs, \r\n"
 						+ "          a.Duration, a.Continuity,b.BrandChapter,a.MediaChannel ,a.ConsumerBehavior"));
-	
+		
 
 // Query_24_1 Vehicle_Spend_NotComposite
 		PCollectionTuple query15_1 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_23"), rec_23)
@@ -2319,20 +2282,22 @@ public class StarterPipeline {
 				.and(new TupleTag<BeamRecord>("rec_24_2"), rec_24_2);
 		PCollection<BeamRecord> rec_24 = query15_2
 				.apply(BeamSql.queryMulti(" Select * FROM rec_24_1 UNION ALL select * FROM rec_24_2"));
+		
 
 		// Query_25 Vehicle_Dueto
 		PCollectionTuple query16 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_24"), rec_24)
-				.and(new TupleTag<BeamRecord>("rec_13"), rec_13);
+				.and(new TupleTag<BeamRecord>("hispanic_6"), hispanic_6);
 		PCollection<BeamRecord> rec_25 = query16.apply(BeamSql.queryMulti(
 				" select a.SourceBDA,a.Country, a.Market, a.CatLib,a.SubChannel, a.Beneficiary, a.Channel,a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "		 a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend , a.ModeledSpend, a.MediaChannel, a.ConsumerBehavior ,SUM(b.Dueto_value) as DuetoVolume from rec_24  a \r\n"
-						+ "        left join rec_13 b \r\n" + "on a.Channel   = b.Outlet and \r\n"
+						+ "        left join hispanic_6 b \r\n" + "on a.Channel   = b.Outlet and \r\n"
 						+ "        a.Beneficiary = b.Beneficiary and \r\n"
 						+ "a.SubChannel = b.SubChannel and a.Market = b.Market and a.MediaChannel=b.MediaChannel \r\n"
 						+ "        where cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
 						+ "		 cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) \r\n"
 						+ "        group by a.SourceBDA,a.Country,a.Market, a.CatLib,a.SubChannel, a.Beneficiary, a.Channel,a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "		 a.Duration, a.Continuity, a.ReportedSpend, a.ModeledSpend, a.BrandChapter,a.MediaChannel ,a.ConsumerBehavior"));
+			
 		
 		// Query_26 and a.Actual_Period = b.Period removed
 		PCollectionTuple query17 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_25"), rec_25)
@@ -2343,14 +2308,13 @@ public class StarterPipeline {
 						+ "        left join shipment b ON a.Beneficiary = b.Beneficiary \r\n"
 						+ "        group by a.SourceBDA,a.Country,a.Market, a.SubChannel,a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend, a.ModeledSpend, a.DuetoVolume, a.MediaChannel ,a.ConsumerBehavior,b.ProjectionFactor,b.AllOutletVolume,b.ChannelVolume "));
 
-	
+		
 		// Query_27 Vehicle_Projection
 		PCollection<BeamRecord> rec_27 = rec_26.apply(BeamSql.query(
 				"select SourceBDA,Country,Market, CatLib,SubChannel, Beneficiary, Channel, Actual_Period, PeriodStartDate, PeriodEndDate, GRPs, \r\n"
 						+ "Duration, Continuity, BrandChapter, ReportedSpend , ModeledSpend, DuetoVolume, ProjectionFactor,ChannelVolume,AllOutletVolume, \r\n"
 						+ "(Case when ProjectionFactor = cast('0.00' as double) or ProjectionFactor is null then cast('0.00' as double) \r\n"
 						+ "when ReportedSpend <> cast('0.00' as double) then ((DuetoVolume/(ModeledSpend/ReportedSpend))/ProjectionFactor) else (DuetoVolume/ProjectionFactor) end) as Volume, MediaChannel, ConsumerBehavior from PCOLLECTION"));
-
 	
 		// Query_28 Vehicle_Curves
 		PCollectionTuple query18 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_27"), rec_27)
@@ -2363,8 +2327,8 @@ public class StarterPipeline {
 						+ "        a.Market = b.Market \r\n" 
 						+ "        group by a.SourceBDA,a.Country,a.Market, a.SubChannel, a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend , a.ModeledSpend, a.DuetoVolume,  a.ProjectionFactor , a.ChannelVolume, a.AllOutletVolume, a.Volume,a.MediaChannel ,a.ConsumerBehavior"));
+		
 	
-
 //		// Query_29 Vehicle_Financials
 		PCollectionTuple query19 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_28"), rec_28)
 				.and(new TupleTag<BeamRecord>("financials"), financials);
@@ -2372,6 +2336,7 @@ public class StarterPipeline {
 				" Select a.SourceBDA,a.Country,a.Market, a.SubChannel, a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend, a.ModeledSpend, a.DuetoVolume, a.ProjectionFactor,a.ChannelVolume, a.AllOutletVolume, a.Volume, a.Alpha ,a.Beta,a.MediaChannel ,a.ConsumerBehavior ,b.rNR, b.rNCS, b.rCtb, b.rAC from rec_28 as a \r\n"
 						+ "left join financials as b on a.Beneficiary = b.BeneficiaryFinance"));
+			
 			
 	PCollection<BeamRecord> TEST_BRANDSH = brandsH.apply(
 				BeamSql.query(" Select distinct Studio, Neighborhoods, BU, Division, Brand_Chapter from PCOLLECTION"));
@@ -2383,8 +2348,8 @@ public class StarterPipeline {
 				"Select a.SourceBDA,a.Country,a.Market, a.SubChannel, a.CatLib, a.Beneficiary, a.Channel, a.Actual_Period, a.PeriodStartDate, a.PeriodEndDate, a.GRPs, \r\n"
 						+ "		a.Duration, a.Continuity, a.BrandChapter, a.ReportedSpend , a.ModeledSpend, a.DuetoVolume,  a.ProjectionFactor, a.ChannelVolume, a.AllOutletVolume, a.Volume, a.Alpha ,a.Beta, a.rNR, a.rNCS, a.rCtb, a.rAC,'Total 52 week' as EventName, 'Vehicle' as Level, a.MediaChannel ,a.ConsumerBehavior, b.Studio, b.Neighborhoods, b.BU, b.Division from rec_29 as a \r\n"
 						+ "		left join TEST_BRANDSH as b on a.BrandChapter = b.Brand_Chapter"));
-
 		
+
 		PCollection<BeamRecord> rec_30_Basis1Temp = efficiency.apply(BeamSql.query(
 				"SELECT BrandChapter,Level, ActualPeriod, MediaChannel, Market, Spend, Duration from PCOLLECTION"));
 
@@ -2499,9 +2464,9 @@ public class StarterPipeline {
 						+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS DOUBLE),cast(ReportedSpend as DOUBLE))as X1, \r\n"
 						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_2, \r\n"
 						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_3, \r\n"
-						+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, 'CalenderYear' as PeriodType, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ")
+						+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, (CASE WHEN SUBSTRING(Actual_Period FROM 1 FOR 2) = 'FY' THEN 'Financial Year' ELSE 'Calendar Year' END) as Period_Type, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ")
 				.withUdf("durationUDF", durationUDF.class).withUdf("X2UDF", X2UDF.class));
-
+		
 		// Converting Beam Record into Class type to implement Gamma function
 		PCollection<VehicleGamma> rec_30Gamma = rec_30_BasisCalc.apply(ParDo.of(new DoFn<BeamRecord, VehicleGamma>() {
 			private static final long serialVersionUID = 1L;
@@ -2688,11 +2653,11 @@ public class StarterPipeline {
 
 		// Query_35 Campaign_Dueto
 		PCollectionTuple query24 = PCollectionTuple.of(new TupleTag<BeamRecord>("rec_34"), rec_34)
-				.and(new TupleTag<BeamRecord>("rec_13"), rec_13);
+				.and(new TupleTag<BeamRecord>("hispanic_6"), hispanic_6);
 		PCollection<BeamRecord> rec_35 = query24.apply(BeamSql.queryMulti(
 				" select  a.SourceBDA, a.Country,a.Market, a.SubChannel, a.CatLib, a.EventName, a.BrandChapter, a.Beneficiary, a.Channel, a.Actual_Period, \r\n"
 						+ "		 a.PeriodStartDate, a.PeriodEndDate, a.GRPs ,a.Duration, a.Continuity, a.ReportedSpend , a.ModeledSpend,a.MediaChannel ,a.ConsumerBehavior ,SUM(b.Dueto_value)  as DuetoVolume from rec_34  a \r\n"
-						+ "        left join rec_13 b \r\n" + "        on a.Channel = b.Outlet and \r\n"
+						+ "        left join hispanic_6 b \r\n" + "        on a.Channel = b.Outlet and \r\n"
 						+ "        a.Beneficiary = b.Beneficiary and \r\n" + "        a.EventName = b.EventName \r\n"
 						+ "        where cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) >= cast(cast(EXTRACT(YEAR from a.PeriodStartDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodStartDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodStartDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodStartDate) as VARCHAR) END) as BIGINT) and \r\n"
 						+ "		 cast(cast(EXTRACT(YEAR from b.Week) as VARCHAR) || (case when EXTRACT(MONTH from b.Week) < 10 then '0' || cast(EXTRACT(MONTH from b.Week) as VARCHAR) else cast(EXTRACT(MONTH from b.Week) as VARCHAR) END) || (case when EXTRACT(DAY from b.Week) < 10 then '0' || cast(EXTRACT(DAY from b.Week) as VARCHAR) else  cast(EXTRACT(DAY from b.Week) as VARCHAR) END) as BIGINT) <= cast(cast(EXTRACT(YEAR from a.PeriodEndDate) as VARCHAR) || (case when EXTRACT(MONTH from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) else cast(EXTRACT(MONTH from a.PeriodEndDate) as VARCHAR) END) || (case when EXTRACT(DAY from a.PeriodEndDate) < 10 then '0' || cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) else  cast(EXTRACT(DAY from a.PeriodEndDate) as VARCHAR) END) as BIGINT) \r\n"
@@ -2790,9 +2755,11 @@ public class StarterPipeline {
 						+ " Volume*rAC as AC ,durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_PY as DOUBLE),CAST(BASIS_Duration_PY AS DOUBLE),cast(ReportedSpend as DOUBLE))as X1, \r\n"
 						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P2Y as DOUBLE),CAST(BASIS_Duration_P2Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_2, \r\n"
 						+ "durationUDF(cast(GRPs as DOUBLE),CAST(Duration as DOUBLE),CAST(Cont as DOUBLE),cast(BASIS_P3Y as DOUBLE),CAST(BASIS_Duration_P3Y AS DOUBLE),cast(ReportedSpend as DOUBLE)) as X1_3, \r\n"
-						+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, 'CalenderYear' as PeriodType, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ")
+						+ " X2UDF(cast(GRPs as DOUBLE),cast(Duration as DOUBLE),cast(Cont as DOUBLE)) as X2, (CASE WHEN SUBSTRING(Actual_Period FROM 1 FOR 2) = 'FY' THEN 'Financial Year' ELSE 'Calendar Year' END) as Period_Type, Actual_Period as Report_Period, CatLib,ChannelVolume,AllOutletVolume from PCOLLECTION ")
 				.withUdf("durationUDF", durationUDF.class).withUdf("X2UDF", X2UDF.class));
 
+		
+		
 		// Converting Beam Record into Class type to implement Gamma function
 		PCollection<CampaignGamma> rec_42Gamma = rec_42.apply(ParDo.of(new DoFn<BeamRecord, CampaignGamma>() {
 			private static final long serialVersionUID = 1L;
@@ -3109,12 +3076,14 @@ public class StarterPipeline {
 						.set("Gamma_X2", elem.Gamma_X2)))
 				.apply(BigQueryIO.writeTableRows().to(tableSpec).withSchema(tableSchema)
 						.withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
-						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));  
+						.withWriteDisposition(WriteDisposition.WRITE_TRUNCATE));    
 
 		// WRITE_TRUNCATE
 		// WRITE_APPEND
 		p.run().waitUntilFinish();
 	}
+	
+}
 	
 //	public static void main(String[] args) throws ParseException {
 //		Timer timer = new Timer();
@@ -3124,31 +3093,28 @@ public class StarterPipeline {
 //					StarterPipeline.run();
 //				} catch (EncryptedDocumentException | org.apache.poi.openxml4j.exceptions.InvalidFormatException
 //						| IOException | InterruptedException e) {
-//					// TODO Auto-generated catch block
+//					// 	
 //					e.printStackTrace();
 //				}
 //		    }
 //		}, new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse("2018-9-11 10:36:00"), 30*60*1000);
 //	}
-}
+//}
 
 // Some kind of rough work....
-/*
- * com.google.cloud.storage.Storage storage =
- * StorageOptions.getDefaultInstance().getService(); BlobId b =
- * BlobId.of("cloroxtegbucket", "wcd.txt"); boolean deleted = storage.delete(b);
- * 
- * public void abcd(String bucket, String blobname) {
- * 
- * com.google.cloud.storage.Storage storage =
- * StorageOptions.getDefaultInstance().getService(); BlobInfo blob =
- * BlobInfo.newBuilder(bucket, blobname).build(); com.google.cloud.storage.Blob
- * remoteBlob = storage.create(blob); assertNotNull(remoteBlob); BlobId
- * wrongGenerationBlob = BlobId.of(bucket, blobname);
- * assertNull(storage.get(wrongGenerationBlob));
- * assertTrue(remoteBlob.delete()); }
- * 
- */
+//	public void abcd(String bucket, String blobname) {
+//		com.google.cloud.storage.Storage storage = StorageOptions.getDefaultInstance().getService(); 
+//		BlobInfo blob = BlobInfo.newBuilder(bucket, blobname).build(); 
+//		com.google.cloud.storage.Blob remoteBlob = storage.create(blob); 
+//		assertNotNull(remoteBlob); 
+//		BlobId wrongGenerationBlob = BlobId.of(bucket, blobname);
+//		assertNull(storage.get(wrongGenerationBlob));
+//		assertTrue(remoteBlob.delete()); 
+//  }
+
+
+  
+ 
 // Movng a file from one location to other
 
 // void deleteObject("/input/Weekly_ip/abc.txt","cloroxtegbucket");
@@ -3166,3 +3132,145 @@ public class StarterPipeline {
 	 * "/input/Weekly_ip/abc.txt")); // Blob copiedBlob = (Blob)
 	 * copyWriter.getResult(); boolean deleted = blob.delete();
 	 */
+
+/*public static class AddF implements BeamSqlUdf {
+	private static final long serialVersionUID = 1L;
+
+	public static String eval(String input) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmdd");
+		System.out.println("dateformat : " + dateFormat);
+
+		// String strdate = Long.toString(input);
+
+		Date date1 = dateFormat.parse(input);
+
+		Calendar c = Calendar.getInstance();
+
+		c.setTime(date1);
+
+		c.add(Calendar.DATE, 14);
+
+		String f = c.getTime().toString();
+
+		System.out.println(f);
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int a = month + 1;
+		String t = null;
+		if (a < 10) {
+			t = "0" + Integer.toString(a);
+
+		} else {
+			t = Integer.toString(a);
+		}
+		int day = c.get(Calendar.DAY_OF_MONTH);
+		String r = null;
+		if (day < 10) {
+			r = "0" + Integer.toString(day);
+
+		} else {
+			r = Integer.toString(day);
+		}
+		System.out.println(year);
+		System.out.println(t);
+		System.out.println(r);
+		String ddate = Integer.toString(year) + t + r;
+		return ddate;
+
+	}
+}
+
+public static class AddT implements BeamSqlUdf {
+	private static final long serialVersionUID = 1L;
+
+	public static String eval(String input) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		System.out.println("dateformat : " + dateFormat);
+
+		// String strdate = Long.toString(input);
+
+		Date date1 = dateFormat.parse(input);
+
+		Calendar c = Calendar.getInstance();
+
+		c.setTime(date1);
+
+		c.add(Calendar.DATE, 21);
+
+		String f = c.getTime().toString();
+
+		System.out.println(f);
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int a = month + 1;
+		String t = null;
+		if (a < 10) {
+			t = "0" + Integer.toString(a);
+
+		} else {
+			t = Integer.toString(a);
+		}
+		int day = c.get(Calendar.DAY_OF_MONTH);
+		String r = null;
+		if (day < 10) {
+			r = "0" + Integer.toString(day);
+
+		} else {
+			r = Integer.toString(day);
+		}
+		System.out.println(year);
+		System.out.println(t);
+		System.out.println(r);
+		String ddate = Integer.toString(year) + t + r;
+		return ddate;
+
+	}
+}
+
+public static class AddW implements BeamSqlUdf {
+	private static final long serialVersionUID = 1L;
+
+	public static String eval(String input) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		System.out.println("dateformat : " + dateFormat);
+
+		// String strdate = Long.toString(input);
+
+		Date date1 = dateFormat.parse(input);
+
+		Calendar c = Calendar.getInstance();
+
+		c.setTime(date1);
+
+		c.add(Calendar.DATE, 28);
+
+		String f = c.getTime().toString();
+
+		System.out.println(f);
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH);
+		int a = month + 1;
+		String t = null;
+		if (a < 10) {
+			t = "0" + Integer.toString(a);
+
+		} else {
+			t = Integer.toString(a);
+		}
+		int day = c.get(Calendar.DAY_OF_MONTH);
+		String r = null;
+		if (day < 10) {
+			r = "0" + Integer.toString(day);
+
+		} else {
+			r = Integer.toString(day);
+		}
+		System.out.println(year);
+		System.out.println(t);
+		System.out.println(r);
+		String ddate = Integer.toString(year) + t + r;
+		return ddate;
+
+	}
+}*/
+
